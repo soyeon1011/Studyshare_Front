@@ -1,5 +1,5 @@
 package com.example.study_note
 
-import io.flutter.embedding.android.FlutterActivity
-
-class MainActivity: FlutterActivity()
+//import io.flutter.embedding.android.FlutterActivity
+//
+//class MainActivity: FlutterActivity()
