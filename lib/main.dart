@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:study_note/screens/home_main_screen.dart'; // MainScreen이 있는 파일
+import 'package:studyshare/main/screens/home_main_screen.dart'; // MainScreen이 있는 파일
 
 void main() {
   runApp(const MyApp());

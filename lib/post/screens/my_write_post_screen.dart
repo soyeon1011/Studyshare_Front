@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:study_note/screens/home_main_screen.dart';
-import 'package:study_note/screens/profile_screen.dart';
-import 'package:study_note/screens/search_screen.dart';
-import 'package:study_note/widgets/header.dart';
+import 'package:studyshare/main/screens/home_main_screen.dart';
+import 'package:studyshare/note/screens/my_note_screen.dart';
+import 'package:studyshare/profile/screens/profile_screen.dart';
+import 'package:studyshare/search/screens/search_screen.dart';
+import 'package:studyshare/widgets/header.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,13 +16,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: MyWriteNoteScreen(),
+      home: MyWritePostScreen(),
     );
   }
 }
 
-class MyWriteNoteScreen extends StatelessWidget {
-  const MyWriteNoteScreen({super.key});
+class MyWritePostScreen extends StatelessWidget {
+  const MyWritePostScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +30,6 @@ class MyWriteNoteScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // 1. AppHeader를 콜백 함수와 함께 올바르게 호출합니다.
             AppHeader(
@@ -52,19 +52,18 @@ class MyWriteNoteScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 80.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center ,
                 children: [
                   // 아이콘
                   Container(
                     width: 90,
                     height: 90,
                     decoration: const ShapeDecoration(
-                      color: Color(0x3310595F),
+                      color:  Color(0xFFFFF2CB),
                       shape: OvalBorder(),
                     ),
                     child: Center(
                       child: Image.asset(
-                        'assets/images/my_write_note_green.png',
+                        'assets/images/my_write_post_yellow.png',
                         width: 48,
                         height: 43,
                       ),
@@ -72,9 +71,9 @@ class MyWriteNoteScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
 
-                  // '내가 작성한 노트'
+                  // '내가 작성한 게시글'
                   const Text(
-                    '내가 작성한 노트',
+                    '내가 작성한 게시글',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.black,
@@ -87,7 +86,7 @@ class MyWriteNoteScreen extends StatelessWidget {
 
                   // '지금까지 작성한...'
                   const Text(
-                    '지금까지 작성한 N개의 노트를 확인해보세요',
+                    '지금까지 작성한 N개의 게시글을 확인해보세요',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFFB3B3B3),
@@ -100,7 +99,7 @@ class MyWriteNoteScreen extends StatelessWidget {
 
                   // 회색 노트 아이콘
                   Image.asset(
-                    'assets/images/my_write_note_gray.png',
+                    'assets/images/my_write_post_gray.png',
                     width: 75,
                     height: 68,
                   ),
@@ -108,7 +107,7 @@ class MyWriteNoteScreen extends StatelessWidget {
 
                   // '아직 작성한 노트가 없습니다'
                   const Text(
-                    '아직 작성한 노트가 없습니다',
+                    '아직 작성한 게시글이 없습니다',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFFB3B3B3),
@@ -121,7 +120,7 @@ class MyWriteNoteScreen extends StatelessWidget {
 
                   // '첫 번째 노트를 작성해보세요'
                   const Text(
-                    '첫 번째 노트를 작성해보세요',
+                    '첫 번째 게시글을 작성해보세요',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFFB3B3B3),
@@ -135,11 +134,11 @@ class MyWriteNoteScreen extends StatelessWidget {
                   // '새 노트 작성' 버튼
                   ElevatedButton.icon(
                     onPressed: () {
-                      print('새 노트 작성 버튼 클릭!');
+                      print('새 게시글 작성 버튼 클릭!');
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0x3310595F),
-                      foregroundColor: const Color(0xFF10595F),
+                      backgroundColor: const Color(0xFFFFF2CB),
+                      foregroundColor: const Color(0xFFF4A908),
                       elevation: 0,
                       minimumSize: const Size(170, 45),
                       shape: RoundedRectangleBorder(
@@ -148,7 +147,7 @@ class MyWriteNoteScreen extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.add, size: 24),
                     label: const Text(
-                      '새 노트 작성',
+                      '새 게시글 작성',
                       style: TextStyle(
                         fontSize: 20,
                         fontFamily: 'Inter',

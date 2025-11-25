@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:study_note/screens/home_main_screen.dart';
-import 'package:study_note/screens/my_likes_list_screen.dart';
-import 'package:study_note/screens/my_write_note_screen.dart';
-import 'package:study_note/screens/my_write_post_screen.dart';
-import 'package:study_note/screens/search_screen.dart';
-import 'package:study_note/widgets/header.dart';
+import 'package:studyshare/main/screens/home_main_screen.dart';
+import 'package:studyshare/like/screens/my_likes_list_screen.dart';
+import 'package:studyshare/note/screens/my_note_screen.dart';
+import 'package:studyshare/post/screens/my_write_post_screen.dart';
+import 'package:studyshare/search/screens/search_screen.dart';
+import 'package:studyshare/widgets/header.dart';
 
 void main() {
   runApp(const MyApp());

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:study_note/screens/home_main_screen.dart';
-import 'package:study_note/screens/my_write_note_screen.dart';
+import 'package:studyshare/main/screens/home_main_screen.dart';
+import 'package:studyshare/note/screens/my_note_screen.dart';
 
-import 'package:study_note/screens/profile_screen.dart';
-import 'package:study_note/screens/search_screen.dart';
-import 'package:study_note/widgets/header.dart';
+import 'package:studyshare/profile/screens/profile_screen.dart';
+import 'package:studyshare/search/screens/search_screen.dart';
+import 'package:studyshare/widgets/header.dart';
 
 /*
 void main() {
