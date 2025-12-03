@@ -20,9 +20,12 @@ dependencies:
   # zefyr: ^0.13.0
   # notus: ^0.13.0
   #flutter_quill: ^7.4.6
-  html_editor_enhanced: ^2.5.12
+  html_editor_enhanced: ^2.7.0
   http: ^1.1.0
   provider: ^6.1.5+1
+
+dependency_overrides:
+  flex_color_picker: 3.6.0 # 3.7.0 이상에서 생긴 SDK 호환성 문제를 우회
 
 
 dev_dependencies:

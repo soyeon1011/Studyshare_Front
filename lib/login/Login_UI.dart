@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // ⭐️ 로그인 성공 후 메인 화면으로 이동
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainScreen()),
+        MaterialPageRoute(builder: (context) => const AuthCheckScreen()),
       );
     } catch (error) {
       // 에러 발생 시, 어느 단계에서 멈췄는지 확인
@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // 중앙 로고
-          Image.asset('StudyShare_Logo.png', height: 60),
+          Image.asset('assets/images/StudyShare_Logo.png', height: 60),
           const SizedBox(height: 50),
 
           // ID/이메일 입력 필드 (더미)
@@ -144,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/kakao_logo.png', height: 20),
+                Image.asset('assets/images/kakao_logo.png', height: 20),
                 const SizedBox(width: 8),
                 const Text(
                   'kakao 로그인',

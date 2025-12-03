@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:studyshare/community/screens/my_community_screen.dart';
+import 'package:studyshare/login/Login_UI.dart';
 import 'package:studyshare/main/screens/home_main_screen.dart';
 import 'package:studyshare/note/screens/my_note_screen.dart';
 import 'package:studyshare/profile/screens/profile_screen.dart';
@@ -46,13 +48,17 @@ class SearchScreen extends StatelessWidget {
               onProfileTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) =>  Profile()),
-                );
+                  MaterialPageRoute(builder: (context) =>  ProfileScreen()));
               },
               onWriteNoteTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteNoteScreen()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const MyNoteScreen()));
             },
+              onLoginTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+              },
+              onWriteCommunityTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCommunityScreen()));
+              },
             ),
 
             // 2. Positioned 대신 반응형 레이아웃으로 콘텐츠를 재구성합니다.

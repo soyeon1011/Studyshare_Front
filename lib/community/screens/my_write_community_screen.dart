@@ -1,42 +1,18 @@
-// lib/Write_Post/,mywritenotescreen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:studyshare/note/services/note_share_logic.dart';
-import 'note_writing_screen.dart';
+import 'package:studyshare/community/screens/community_writing_screen.dart';
+// 💡 [수정] 커뮤니티 Logic/Model을 사용하도록 변경
+import 'package:studyshare/community/services/community_share_logic.dart';
+import 'package:studyshare/community/models/community_model.dart';
 
-void main() {
-  runApp(
-    // 💡 [핵심 수정] MultiProvider로 앱을 감싸서 Logic을 등록해야 합니다!
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => StudyShareLogic()),
-      ],
-      child: const MyApp(),
-    ),
-  );
-}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyWriteCommunityScreen extends StatelessWidget {
+  const MyWriteCommunityScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MyWriteNoteScreen(),
-    );
-  }
-}
-
-
-class MyWriteNoteScreen extends StatelessWidget {
-  const MyWriteNoteScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // 💡 StudyShareLogic 객체를 Provider를 통해 구독합니다.
-    return Consumer<StudyShareLogic>(builder: (context, logic, child) {
+    // 💡 [핵심] CommunityShareLogic을 구독합니다.
+    return Consumer<CommunityShareLogic>(builder: (context, logic, child) {
       return Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
@@ -50,10 +26,10 @@ class MyWriteNoteScreen extends StatelessWidget {
                 // 2. 헤더 섹션 (타이틀, 검색, 작성 버튼)
                 _buildHeaderSection(context),
 
-                // --- 두꺼운 노란색 구분선 ---
+                // --- 두꺼운 노란색 구분선 (커뮤니티 색상) ---
                 Container(
                   height: 6,
-                  color: const Color(0xFFFFCC33),
+                  color: const Color(0xFFF4A908), // 커뮤니티 색상
                   margin: const EdgeInsets.only(bottom: 12.0),
                 ),
 
@@ -64,16 +40,16 @@ class MyWriteNoteScreen extends StatelessWidget {
                       padding: EdgeInsets.only(top: 0.0, bottom: 12.0),
                       child: Row(
                         children: <Widget>[
-                          _TableHeaderItem(title: '구분', flex: 1),
-                          // 💡 [수정] 제목 헤더의 정렬을 가운데로 변경
+                          // 💡 [수정] 구분 -> 카테고리
+                          _TableHeaderItem(title: '카테고리', flex: 1),
                           _TableHeaderItem(title: '제목', flex: 3),
                           _TableHeaderItem(title: '작성자', flex: 1),
-                          _TableHeaderItem(title: '조회수', flex: 1),
+                          _TableHeaderItem(title: '좋아요', flex: 1), // 조회수 -> 좋아요
                           _TableHeaderItem(title: '등록일', flex: 1),
                         ],
                       ),
                     ),
-                    Divider(height: 1, thickness: 2, color: Color(0xFFFFCC33)),
+                    Divider(height: 1, thickness: 2, color: Color(0xFFF4A908)), // 커뮤니티 색상
                   ],
                 ),
 
@@ -83,39 +59,37 @@ class MyWriteNoteScreen extends StatelessWidget {
                     onRefresh: logic.refreshData,
                     child: logic.isLoadingStatus
                         ? const Center(child: CircularProgressIndicator())
-                        : logic.notes.isEmpty
-                            ? const Center(
-                                child: Text('게시된 노트가 없습니다.',
-                                    style: TextStyle(color: Colors.grey)))
-                            : ListView.builder(
-                                itemCount: logic.notes.length,
-                                itemBuilder: (context, index) {
-                                  final note = logic.notes[index];
+                        : logic.posts.isEmpty // 💡 [수정] notes -> posts
+                        ? const Center(
+                        child: Text('게시된 게시글이 없습니다.',
+                            style: TextStyle(color: Colors.grey)))
+                        : ListView.builder(
+                      itemCount: logic.posts.length,
+                      itemBuilder: (context, index) {
+                        final post = logic.posts[index]; // 💡 [수정] notes -> posts
 
-                                  // 등록일 표시에 상대 시간 로직 적용
-                                  String displayDate =
-                                      logic.formatRelativeTime(note.createDate);
+                        String displayDate =
+                        logic.formatRelativeTime(post.createDate);
 
-                                  return Column(
-                                    children: [
-                                      _TableDataItem(
-                                        category: logic.getSubjectNameById(
-                                            note.noteSubjectId),
-                                        title: note.title.isNotEmpty
-                                            ? note.title
-                                            : "(제목 없음)",
-                                        author: note.userId.toString(),
-                                        views: note.likesCount.toString(),
-                                        date: displayDate, // 상대 시간 출력
-                                      ),
-                                      const Divider(
-                                          height: 1,
-                                          thickness: 1,
-                                          color: Color(0xFFDDDDDD)),
-                                    ],
-                                  );
-                                },
-                              ),
+                        return Column(
+                          children: [
+                            _TableDataItem(
+                              category: post.category, // 💡 [수정] 카테고리 필드 사용
+                              title: post.title.isNotEmpty
+                                  ? post.title
+                                  : "(제목 없음)",
+                              author: post.userId.toString(),
+                              views: post.likesCount.toString(), // 💡 [수정] 좋아요 수 사용
+                              date: displayDate,
+                            ),
+                            const Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: Color(0xFFDDDDDD)),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
 
@@ -132,8 +106,6 @@ class MyWriteNoteScreen extends StatelessWidget {
                       _PageButton(text: '1', isSelected: true),
                       _PageButton(text: '2'),
                       _PageButton(text: '3'),
-                      _PageButton(text: '4'),
-                      _PageButton(text: '5'),
                       SizedBox(width: 10),
                       Text('>'),
                       SizedBox(width: 10),
@@ -149,8 +121,8 @@ class MyWriteNoteScreen extends StatelessWidget {
     });
   }
 
-  // 서버 상태를 시각적으로 보여주는 위젯
-  Widget _buildServerStatusWidget(StudyShareLogic logic) {
+  // 서버 상태를 시각적으로 보여주는 위젯 (NoteWritingScreen에서 복사)
+  Widget _buildServerStatusWidget(CommunityShareLogic logic) {
     Color color;
     String message;
     IconData icon;
@@ -220,7 +192,7 @@ class MyWriteNoteScreen extends StatelessWidget {
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                     border: const OutlineInputBorder(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(5.0),
@@ -249,7 +221,7 @@ class MyWriteNoteScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFCC33),
+                    backgroundColor: const Color(0xFFF4A908), // 커뮤니티 색상
                     padding: EdgeInsets.zero,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
@@ -261,7 +233,7 @@ class MyWriteNoteScreen extends StatelessWidget {
                     ),
                   ),
                   child:
-                      const Icon(Icons.search, color: Colors.white, size: 24),
+                  const Icon(Icons.search, color: Colors.white, size: 24),
                 ),
               ),
 
@@ -275,17 +247,17 @@ class MyWriteNoteScreen extends StatelessWidget {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const NoteWritingScreen()));
+                            builder: (context) => const CommunityWritingScreen())); // 💡 [수정] PostWritingScreen으로 이동
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFCC33),
+                    backgroundColor: const Color(0xFFF4A908), // 커뮤니티 색상
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
                   icon: const Icon(Icons.edit, color: Colors.white, size: 18),
-                  label: const Text('게시물 작성하기',
+                  label: const Text('새 게시글 작성', // 💡 [수정] 노트 -> 게시글
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -301,24 +273,24 @@ class MyWriteNoteScreen extends StatelessWidget {
 }
 
 // =================================================================
-// 테이블 구성 요소 위젯 (Helper Classes) - StudyShareScreen 밖에 정의
+// 테이블 구성 요소 위젯 (Helper Classes) - MyWriteCommunityScreen 파일 내에 정의
 // =================================================================
 
 class _TableHeaderItem extends StatelessWidget {
   final String title;
   final int flex;
-  final Alignment alignment;
   const _TableHeaderItem(
       {super.key,
-      required this.title,
-      required this.flex,
-      this.alignment = Alignment.center});
+        required this.title,
+        required this.flex,
+        // alignment 파라미터는 이전 코드에서 사용되지 않았으므로 제거하지 않음
+      });
   @override
   Widget build(BuildContext context) {
     return Expanded(
       flex: flex,
       child: Container(
-        alignment: alignment,
+        alignment: Alignment.center,
         child: Text(
           title,
           style: const TextStyle(
@@ -350,11 +322,10 @@ class _TableDataItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        _TableDataCell(text: category, flex: 1),
-        // 💡 [수정] 제목 셀의 정렬을 가운데로 변경
-        _TableDataCell(text: title, flex: 3, alignment: Alignment.center),
+        _TableDataCell(text: category, flex: 1), // 카테고리 (자유)
+        _TableDataCell(text: title, flex: 3, alignment: Alignment.centerLeft), // 제목은 왼쪽 정렬이 자연스러움
         _TableDataCell(text: author, flex: 1),
-        _TableDataCell(text: views, flex: 1),
+        _TableDataCell(text: views, flex: 1), // 좋아요 수
         _TableDataCell(text: date, flex: 1),
       ],
     );
@@ -396,7 +367,7 @@ class _PageButton extends StatelessWidget {
   final String text;
   final bool isSelected;
 
-  const _PageButton({required this.text, this.isSelected = false});
+  const _PageButton({super.key, required this.text, this.isSelected = false});
 
   @override
   Widget build(BuildContext context) {
@@ -405,7 +376,7 @@ class _PageButton extends StatelessWidget {
       height: 30,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFFFCC33) : Colors.transparent,
+        color: isSelected ? const Color(0xFFF4A908) : Colors.transparent, // 커뮤니티 색상
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: Text(

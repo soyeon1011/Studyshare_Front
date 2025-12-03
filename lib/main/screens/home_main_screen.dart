@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:studyshare/community/screens/my_community_screen.dart';
+import 'package:studyshare/login/Login_UI.dart';
 // import 'package:study_note/screens/main_screen.dart'; // <--- 문제가 되었던 이 줄을 삭제했습니다!
 import 'package:studyshare/profile/screens/profile_screen.dart';
 import 'package:studyshare/search/screens/search_screen.dart';
@@ -135,11 +137,16 @@ class MainScreen extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) =>  SearchScreen()));
               },
               onProfileTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) =>  Profile()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) =>  ProfileScreen()));
               },
               onWriteNoteTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteNoteScreen()),
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyNoteScreen()));
+              },
+              onLoginTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+              },
+              onWriteCommunityTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCommunityScreen()));
               },
             ),
             Stack(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:studyshare/community/screens/my_community_screen.dart';
+import 'package:studyshare/login/Login_UI.dart';
 import 'package:studyshare/main/screens/home_main_screen.dart';
 import 'package:studyshare/like/screens/my_likes_list_screen.dart';
 import 'package:studyshare/note/screens/my_note_screen.dart';
-import 'package:studyshare/post/screens/my_write_post_screen.dart';
+import 'package:studyshare/community//screens/my_write_community_screen.dart';
 import 'package:studyshare/search/screens/search_screen.dart';
 import 'package:studyshare/widgets/header.dart';
 
@@ -17,13 +19,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Profile(),
+      home: ProfileScreen(),
     );
   }
 }
 
-class Profile extends StatelessWidget {
-  const Profile({super.key});
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +46,13 @@ class Profile extends StatelessWidget {
                 print("Already on Profile Screen");
               },
               onWriteNoteTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteNoteScreen()),
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyNoteScreen()));
+              },
+              onLoginTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+              },
+              onWriteCommunityTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCommunityScreen()));
               },
             ),
 
@@ -82,7 +89,7 @@ class Profile extends StatelessWidget {
                       title: '내가 작성한 노트',
                       count: '20',
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteNoteScreen()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const MyNoteScreen()));
                       },
                     ),
                     _buildProfileMenuItem(
@@ -90,7 +97,7 @@ class Profile extends StatelessWidget {
                       title: '내가 작성한 게시글',
                       count: '5',
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWritePostScreen()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCommunityScreen()));
                       },
                     ),
                     _buildProfileMenuItem(

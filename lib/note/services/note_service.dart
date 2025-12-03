@@ -3,7 +3,8 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async'; // TimeoutException
-import 'dart:io';    // Platform 확인용 (안드로이드/iOS 구분)
+// import 'dart:io';    // Platform 확인용 (안드로이드/iOS 구분)
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 // [수정] 패키지 경로가 studyshare인지 확인하세요!
 import 'package:studyshare/note/models/note_model.dart';
@@ -18,13 +19,19 @@ final Map<String, int> subjectToId = {
 };
 
 class NoteService {
-  // 💡 [핵심 수정 1] 안드로이드 에뮬레이터와 iOS 시뮬레이터 주소 분기 처리
-  // 백엔드 포트가 8080이라면 8080으로, 8081이라면 8081로 맞춰주세요. (기본값 8080 적용)
+
   static String get _baseUrl {
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:8080/notes'; // 안드로이드 전용 IP
-    } else {
-      return 'http://localhost:8080/notes'; // iOS 및 웹용
+    const port = '8081'; // 백엔드 포트 8081로 통일
+
+    // 💡 [핵심 수정] Platform.isAndroid 대신 kIsWeb을 사용하여 오류 방지
+    if (kIsWeb) {
+      // 웹 (localhost:6xxxx) 실행 시, API는 localhost:8081로 요청
+      return 'http://localhost:$port/notes';
+    }
+    // 모바일 환경 (안드로이드/iOS 에뮬레이터)
+    else {
+      // 안드로이드 에뮬레이터에서 localhost 대신 10.0.2.2를 사용하도록 강제
+      return 'http://10.0.2.2:$port/notes';
     }
   }
 

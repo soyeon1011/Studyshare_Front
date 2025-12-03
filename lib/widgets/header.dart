@@ -6,6 +6,8 @@ class AppHeader extends StatelessWidget {
   final VoidCallback onSearchTap;
   final VoidCallback onProfileTap;
   final VoidCallback onWriteNoteTap;
+  final VoidCallback onLoginTap;
+  final VoidCallback onWriteCommunityTap;
 
   const AppHeader({
     super.key,
@@ -13,6 +15,8 @@ class AppHeader extends StatelessWidget {
     required this.onSearchTap,
     required this.onProfileTap,
     required this.onWriteNoteTap,
+    required this.onLoginTap,
+    required this.onWriteCommunityTap,
   });
 
   @override
@@ -60,7 +64,7 @@ class AppHeader extends StatelessWidget {
                       children: [
                         _buildTopButton(Icons.search, '검색', onTap: onSearchTap),
                         const SizedBox(width: 30),
-                        _buildTopButton(Icons.login, '로그인'),
+                        _buildTopButton(Icons.login, '로그인', onTap: onLoginTap),
                         const SizedBox(width: 30),
                         _buildTopButton(Icons.person_add_alt_1, '회원가입'),
                       ],
@@ -86,7 +90,7 @@ class AppHeader extends StatelessWidget {
                   _buildNavButton('StudyShare', onTap: onLogoTap),
                   _buildNavButton('북마크'),
                   _buildNavButton('노트 작성', onTap: onWriteNoteTap),
-                  _buildNavButton('커뮤니티'),
+                  _buildNavButton('커뮤니티', onTap: onWriteCommunityTap),
                   _buildNavButton('프로필', onTap: onProfileTap),
                 ],
               ),

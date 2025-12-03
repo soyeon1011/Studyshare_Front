@@ -5,8 +5,8 @@ import 'Login_UI.dart'; // ⭐️ Login_UI.dart 파일 임포트
 import 'AuthService.dart'; // AuthService 임포트
 
 // ⚠️ 임시 메인 화면 (실제 앱의 메인 화면으로 변경하세요)
-class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
+class AuthCheckScreen extends StatelessWidget {
+  const AuthCheckScreen({super.key});
 
   // 로그아웃 버튼 로직
   Future<void> _kakaoLogout(BuildContext context) async {
@@ -64,7 +64,7 @@ class AuthCheck extends StatelessWidget {
         // 상태 확인 완료 후
         if (snapshot.data == true) {
           // 로그인 상태: 메인 화면 표시
-          return const MainScreen();
+          return const AuthCheckScreen();
         } else {
           // 로그아웃 상태: 로그인 화면 표시
           return const LoginScreen();
