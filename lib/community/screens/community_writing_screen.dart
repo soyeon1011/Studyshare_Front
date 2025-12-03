@@ -114,7 +114,7 @@ class _CommunityWritingScreenState extends State<CommunityWritingScreen> {
         children: [
           Column(
             children: [
-              _buildServerStatusWidget(), // 서버 상태 표시 위젯
+              //_buildServerStatusWidget(), // 서버 상태 표시 위젯
               Expanded(
                 child: SafeArea(
                   child: Center(

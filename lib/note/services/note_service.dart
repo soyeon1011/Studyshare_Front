@@ -2,11 +2,9 @@
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:async'; // TimeoutException
-// import 'dart:io';    // Platform 확인용 (안드로이드/iOS 구분)
+import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-// [수정] 패키지 경로가 studyshare인지 확인하세요!
 import 'package:studyshare/note/models/note_model.dart';
 
 // 과목 이름과 DB ID 매핑 데이터
@@ -21,16 +19,11 @@ final Map<String, int> subjectToId = {
 class NoteService {
 
   static String get _baseUrl {
-    const port = '8081'; // 백엔드 포트 8081로 통일
+    const port = '8081'; // 백엔드 포트 8081
 
-    // 💡 [핵심 수정] Platform.isAndroid 대신 kIsWeb을 사용하여 오류 방지
     if (kIsWeb) {
-      // 웹 (localhost:6xxxx) 실행 시, API는 localhost:8081로 요청
       return 'http://localhost:$port/notes';
-    }
-    // 모바일 환경 (안드로이드/iOS 에뮬레이터)
-    else {
-      // 안드로이드 에뮬레이터에서 localhost 대신 10.0.2.2를 사용하도록 강제
+    } else {
       return 'http://10.0.2.2:$port/notes';
     }
   }
@@ -53,7 +46,7 @@ class NoteService {
     }
   }
 
-  /// 노트 등록 API를 호출하고 성공 여부를 반환합니다. (POST /notes)
+  /// 노트 등록 API (POST /notes)
   Future<bool> registerNote({
     required String title,
     required String bodyHtml,
@@ -64,9 +57,6 @@ class NoteService {
     final subjectId = subjectToId[selectedSubject] ?? 0;
     const fileUrl = '';
 
-    // 💡 [핵심 수정 2] DTO 필드명 매칭 (userId 제외)
-    // NoteCreateRequestDto에는 userId 필드가 없으므로 보내지 않아도 됩니다.
-    // (백엔드에서 로그인한 유저 정보를 직접 주입합니다)
     final postData = {
       'title': title,
       'noteSubjectId': subjectId,
@@ -76,7 +66,7 @@ class NoteService {
 
     try {
       final response = await http.post(
-        Uri.parse(_baseUrl), // 동적 URL 사용
+        Uri.parse(_baseUrl),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -94,6 +84,7 @@ class NoteService {
       return false;
     }
   }
+
 
   /// 모든 노트 조회 (GET /notes)
   Future<List<NoteModel>> fetchAllNotes() async {
@@ -118,7 +109,7 @@ class NoteService {
             return null;
           }
         })
-            .whereType<NoteModel>() // 변환 실패한 null 항목 제거
+            .whereType<NoteModel>()
             .toList();
       } else {
         print('노트 조회 실패: ${response.statusCode}');
@@ -129,6 +120,38 @@ class NoteService {
       return [];
     } catch (e) {
       print('네트워크 통신 오류 (조회): $e');
+      return [];
+    }
+  }
+
+  // ⬇️⬇️⬇️ [추가된 함수] ⬇️⬇️⬇️
+
+  /// 특정 사용자가 작성한 노트 조회 (GET /notes/user/{userId})
+  Future<List<NoteModel>> getNotesByUserId(int userId) async {
+    try {
+      // 백엔드 엔드포인트: /notes/user/{userId}
+      final url = Uri.parse('$_baseUrl/user/$userId');
+
+      final response = await http.get(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> notesJson =
+        jsonDecode(utf8.decode(response.bodyBytes));
+
+        return notesJson
+            .map((json) => NoteModel.fromJson(json))
+            .toList();
+      } else {
+        print('유저별 노트 조회 실패: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('네트워크 통신 오류 (유저별 조회): $e');
       return [];
     }
   }

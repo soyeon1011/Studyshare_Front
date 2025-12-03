@@ -2,7 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:studyshare/community/screens/my_community_screen.dart';
+import 'package:studyshare/community/screens/my_write_community_screen.dart';
+import 'package:studyshare/login/Login_UI.dart';
+import 'package:studyshare/main/screens/home_main_screen.dart';
 import 'package:studyshare/note/services/note_share_logic.dart';
+import 'package:studyshare/profile/screens/profile_screen.dart';
+import 'package:studyshare/search/screens/search_screen.dart';
+import 'package:studyshare/widgets/header.dart';
 import 'note_writing_screen.dart';
 
 void main() {
@@ -43,9 +50,28 @@ class MyWriteNoteScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 120.0),
             child: Column(
-              children: <Widget>[
-                // 1. 서버 상태 위젯
-                _buildServerStatusWidget(logic),
+              children:[
+                AppHeader(
+                  onLogoTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const MainScreen()));
+                  },
+                  onSearchTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => SearchScreen()));
+                  },
+                  onProfileTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+                  },
+                  onWriteNoteTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCommunityScreen()));
+                  },
+                  onLoginTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+                  },
+                  onWriteCommunityTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen()));
+                  },
+                ),
+
 
                 // 2. 헤더 섹션 (타이틀, 검색, 작성 버튼)
                 _buildHeaderSection(context),
