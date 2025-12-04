@@ -63,7 +63,6 @@ class CommunityService {
     }
   }
 
-  // 게시글 등록 (POST /communities)
   Future<bool> registerPost({
     required String title,
     required String content,
