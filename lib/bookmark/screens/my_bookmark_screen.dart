@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:studyshare/community/screens/my_community_screen.dart';
-import 'package:studyshare/community/screens/my_write_community_screen.dart'; // 작성 페이지 연결용
+import 'package:studyshare/community/screens/my_write_community_screen.dart';
 import 'package:studyshare/main/screens/home_main_screen.dart';
 import 'package:studyshare/profile/screens/profile_screen.dart';
 import 'package:studyshare/search/screens/search_screen.dart';
@@ -10,11 +10,14 @@ import 'package:studyshare/widgets/header.dart';
 import 'package:studyshare/login/Login_UI.dart';
 import 'package:studyshare/note/screens/my_note_screen.dart';
 
-// 💡 서비스 & 모델 임포트
 import 'package:studyshare/note/services/note_service.dart';
 import 'package:studyshare/note/models/note_model.dart';
 import 'package:studyshare/community/services/community_service.dart';
 import 'package:studyshare/community/models/community_model.dart';
+
+// 💡 [추가] 상세 페이지 임포트
+import 'package:studyshare/note/screens/note_detail_screen.dart';
+import 'package:studyshare/community/screens/community_detail_screen.dart';
 
 class MyBookmarkScreen extends StatefulWidget {
   const MyBookmarkScreen({super.key});
@@ -27,7 +30,6 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
   final NoteService _noteService = NoteService();
   final CommunityService _communityService = CommunityService();
 
-  // 💡 노트와 커뮤니티 글을 섞어서 담을 리스트 (dynamic)
   List<dynamic> _allItems = [];
   bool _isLoading = true;
 
@@ -38,19 +40,12 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
   }
 
   Future<void> _loadAllBookmarks() async {
-    // 1. 노트 북마크 가져오기
     final notes = await _noteService.fetchBookmarkedNotes(1);
-    // 2. 커뮤니티 북마크 가져오기
     final communities = await _communityService.fetchBookmarkedCommunities(1);
 
     if (mounted) {
       setState(() {
-        // 3. 두 리스트 합치기
         _allItems = [...notes, ...communities];
-
-        // (선택 사항) 최신순 정렬 등을 하고 싶으면 여기서 sort 가능
-        // _allItems.sort((a, b) => ...);
-
         _isLoading = false;
       });
     }
@@ -69,18 +64,16 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 1. Header
             AppHeader(
               onLogoTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MainScreen())),
               onSearchTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SearchScreen())),
               onProfileTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen())),
               onWriteNoteTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyNoteScreen())),
               onLoginTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen())),
-              onWriteCommunityTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen())), // 수정됨
+              onWriteCommunityTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen())),
               onBookmarkTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBookmarkScreen())),
             ),
 
-            // 2. 콘텐츠 영역
             Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1200),
@@ -149,10 +142,7 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
         Text('북마크한 ${_allItems.length}개의 콘텐츠를 확인해보세요', style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 20)),
         const SizedBox(height: 50),
 
-        // 💡 리스트 아이템 렌더링
         ..._allItems.map((item) {
-
-          // 데이터 타입 확인 후 값 추출
           String title = '';
           String category = '';
           String author = '';
@@ -163,7 +153,7 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
 
           if (item is NoteModel) {
             title = item.title;
-            category = "노트"; // 노트는 카테고리를 고정하거나 subjectId 변환 필요
+            category = "노트";
             author = "User ${item.userId}";
             date = item.createDate;
             preview = item.noteContent.replaceAll(RegExp(r'<[^>]*>'), '');
@@ -171,7 +161,7 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
             comments = item.commentsCount;
           } else if (item is CommunityModel) {
             title = item.title;
-            category = item.category; // 커뮤니티는 카테고리 그대로 사용
+            category = item.category;
             author = "User ${item.userId}";
             date = item.createDate;
             preview = item.content.replaceAll(RegExp(r'<[^>]*>'), '');
@@ -183,24 +173,35 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
             padding: const EdgeInsets.only(bottom: 30.0),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 700),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: ShapeDecoration(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Color(0xFFCFCFCF)),
-                    borderRadius: BorderRadius.circular(10),
+
+              // 💡 [수정] 타입에 따른 페이지 이동 로직 추가
+              child: GestureDetector(
+                onTap: () {
+                  if (item is NoteModel) {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => NoteDetailScreen(note: item)));
+                  } else if (item is CommunityModel) {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CommunityDetailScreen(post: item)));
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: ShapeDecoration(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      side: const BorderSide(color: Color(0xFFCFCFCF)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    shadows: const [BoxShadow(color: Color(0x19000000), blurRadius: 10, offset: Offset(0, 4))],
                   ),
-                  shadows: const [BoxShadow(color: Color(0x19000000), blurRadius: 10, offset: Offset(0, 4))],
-                ),
-                child: PostCardContent(
-                  title: title.isNotEmpty ? title : "(제목 없음)",
-                  category: category,
-                  author: author,
-                  date: date,
-                  preview: preview.length > 100 ? "${preview.substring(0, 100)}..." : preview,
-                  likes: likes,
-                  comments: comments,
+                  child: PostCardContent(
+                    title: title.isNotEmpty ? title : "(제목 없음)",
+                    category: category,
+                    author: author,
+                    date: date,
+                    preview: preview.length > 100 ? "${preview.substring(0, 100)}..." : preview,
+                    likes: likes,
+                    comments: comments,
+                  ),
                 ),
               ),
             ),
@@ -212,7 +213,6 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
   }
 }
 
-// 공통 카드 위젯
 class PostCardContent extends StatelessWidget {
   final String title;
   final String category;
@@ -240,15 +240,10 @@ class PostCardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 상단 작성자 아이콘 (공통)
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.transparent,
-                child: Icon(Icons.person, size: 40, color: Colors.grey),
-              ),
+              CircleAvatar(radius: 18, backgroundColor: Colors.transparent, child: Icon(Icons.person, size: 40, color: Colors.grey)),
             ],
           ),
           const SizedBox(height: 12),
@@ -260,7 +255,6 @@ class PostCardContent extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
-                  // 커뮤니티면 노란색, 노트면 보라색 테두리 등을 줄 수도 있음 (여기선 공통 보라색)
                   border: Border.all(color: const Color(0xFF8F00FF), width: 1.0),
                 ),
                 child: Text(category, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
@@ -286,7 +280,6 @@ class PostCardContent extends StatelessWidget {
                   Text('$comments', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 18, fontWeight: FontWeight.w700)),
                 ],
               ),
-              // 북마크 화면이므로 꽉 찬 북마크 아이콘 표시
               const Icon(Icons.bookmark, size: 30, color: Color(0xFF8F00FF)),
             ],
           ),

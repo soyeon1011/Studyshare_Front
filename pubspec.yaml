@@ -23,6 +23,7 @@ dependencies:
   html_editor_enhanced: ^2.7.0
   http: ^1.1.0
   provider: ^6.1.5+1
+  flutter_widget_from_html: ^0.17.1
 
 dependency_overrides:
   flex_color_picker: 3.6.0 # 3.7.0 이상에서 생긴 SDK 호환성 문제를 우회
