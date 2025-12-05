@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:studyshare/bookmark/screens/my_bookmark_screen.dart';
 import 'package:studyshare/community/screens/my_write_community_screen.dart';
 import 'package:studyshare/main/screens/home_main_screen.dart';
 import 'package:studyshare/profile/screens/profile_screen.dart';
@@ -44,6 +45,9 @@ class MyCommunityScreen extends StatelessWidget {
                   },
                   onWriteCommunityTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen()));
+                  },
+                  onBookmarkTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBookmarkScreen()));
                   },
                 ),
 

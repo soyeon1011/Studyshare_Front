@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:studyshare/bookmark/services/bookmark_logic.dart';
 // 각 기능별 화면 및 로직 import
 import 'package:studyshare/main/screens/home_main_screen.dart';
 import 'package:studyshare/note/services/note_share_logic.dart';
@@ -26,6 +27,8 @@ class MyApp extends StatelessWidget {
 
         // 3. [필수 추가] 프로필 로직 (ProfileScreen에서 사용)
         ChangeNotifierProvider(create: (_) => ProfileLogic()),
+
+        ChangeNotifierProvider(create: (_) => BookmarkLogic()),
       ],
       child: MaterialApp(
         title: 'Study Share',

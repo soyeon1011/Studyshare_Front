@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:studyshare/bookmark/screens/my_bookmark_screen.dart';
 import 'package:studyshare/community/screens/community_writing_screen.dart';
 import 'package:studyshare/community/screens/my_community_screen.dart';
 // 💡 [수정] 커뮤니티 Logic/Model을 사용하도록 변경
@@ -45,6 +46,9 @@ class MyWriteCommunityScreen extends StatelessWidget {
                   },
                   onWriteCommunityTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen()));
+                  },
+                  onBookmarkTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBookmarkScreen()));
                   },
                 ),
 

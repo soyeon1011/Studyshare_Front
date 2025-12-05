@@ -1,16 +1,20 @@
-// lib/Write_Post/note_model.dart
+// lib/note/models/note_model.dart
 
 class NoteModel {
   final int id;
-  final int noteSubjectId; // 과목 ID
-  final int userId; // 작성자 ID
-  final String title; // 제목
+  final int noteSubjectId;
+  final int userId;
+  final String title;
   final String noteContent;
   final String noteFileUrl;
   final int likesCount;
   final int commentsCount;
   final int commentsLikesCount;
-  final String createDate; // 날짜는 String으로 받습니다.
+  final String createDate;
+  final int bookmarksCount;
+
+  final bool isLiked;
+  final bool isBookmarked;
 
   NoteModel({
     required this.id,
@@ -23,33 +27,98 @@ class NoteModel {
     required this.commentsCount,
     required this.commentsLikesCount,
     required this.createDate,
+    required this.bookmarksCount,
+    this.isLiked = false,
+    this.isBookmarked = false,
   });
 
-  // JSON Map을 Dart 객체로 변환하는 팩토리 생성자
   factory NoteModel.fromJson(Map<String, dynamic> json) {
-    // 💡 [핵심] 날짜 필드의 안전한 값 추출 (스네이크 케이스와 카멜 케이스 모두 체크)
-    final rawDateString =
-        json['create_date'] as String? ?? json['createDate'] as String? ?? '';
-
     return NoteModel(
-      // [유지] Null/타입 안전성 강화 로직 유지
+      // ID
       id: (json['id'] as num?)?.toInt() ?? 0,
-      noteSubjectId: (json['note_subject_id'] as num?)?.toInt() ?? 0,
-      userId: (json['user_id'] as num?)?.toInt() ?? 0,
 
-      // 제목 필드 안전성 유지 (title 또는 note_title 키 체크)
-      title: json['title'] as String? ?? json['note_title'] as String? ?? '',
+      // 과목 ID (백엔드: note_subject_id)
+      noteSubjectId: (json['noteSubjectId'] as num?)?.toInt() ??
+          (json['note_subject_id'] as num?)?.toInt() ?? 0,
 
-      noteContent: json['note_content'] as String? ?? '',
-      noteFileUrl: json['note_file_url'] as String? ?? '',
+      // 유저 ID (백엔드: user_id)
+      userId: (json['userId'] as num?)?.toInt() ??
+          (json['noteUserId'] as num?)?.toInt() ??
+          (json['user_id'] as num?)?.toInt() ?? 0,
 
-      // 카운트 필드 안전성 유지
-      likesCount: (json['likes_count'] as num?)?.toInt() ?? 0,
-      commentsCount: (json['comments_count'] as num?)?.toInt() ?? 0,
-      commentsLikesCount: (json['comments_likes_count'] as num?)?.toInt() ?? 0,
+      // 제목 (백엔드: note_title)
+      title: json['title'] as String? ??
+          json['noteTitle'] as String? ??
+          json['note_title'] as String? ?? '',
 
-      // 💡 [수정] 가장 안전한 키에서 추출한 값을 사용
-      createDate: rawDateString,
+      // 내용 (백엔드: note_content)
+      noteContent: json['noteContent'] as String? ??
+          json['note_content'] as String? ?? '',
+
+      // 파일 URL (백엔드: note_file_url)
+      noteFileUrl: json['noteFileUrl'] as String? ??
+          json['note_file_url'] as String? ?? '',
+
+      // 카운트들 (백엔드: note_likes_count 등)
+      likesCount: (json['likesCount'] as num?)?.toInt() ??
+          (json['noteLikesCount'] as num?)?.toInt() ??
+          (json['note_likes_count'] as num?)?.toInt() ?? 0,
+
+      commentsCount: (json['commentsCount'] as num?)?.toInt() ??
+          (json['noteCommentsCount'] as num?)?.toInt() ??
+          (json['note_comments_count'] as num?)?.toInt() ?? 0,
+
+      commentsLikesCount: (json['commentsLikesCount'] as num?)?.toInt() ??
+          (json['noteCommentsLikesCount'] as num?)?.toInt() ??
+          (json['note_comments_likes_count'] as num?)?.toInt() ?? 0,
+
+      bookmarksCount: (json['bookmarksCount'] as num?)?.toInt() ??
+          (json['noteBookmarksCount'] as num?)?.toInt() ??
+          (json['note_bookmarks_count'] as num?)?.toInt() ?? 0,
+
+      // 날짜 (백엔드: note_create_date)
+      createDate: json['createDate'] as String? ??
+          json['noteCreateDate'] as String? ??
+          json['note_create_date'] as String? ?? '',
+
+      // 상태값
+      isLiked: json['isLiked'] ?? false,
+      isBookmarked: json['isBookmarked'] ?? false,
+    );
+  }
+
+  // 💡 [이 부분이 없어서 오류가 났습니다]
+  NoteModel copyWith({
+    int? id,
+    int? noteSubjectId,
+    int? userId,
+    String? title,
+    String? noteContent,
+    String? noteFileUrl,
+    int? likesCount,
+    int? commentsCount,
+    int? commentsLikesCount,
+    String? createDate,
+    int? bookmarksCount,
+
+    bool? isLiked,
+    bool? isBookmarked,
+  }) {
+    return NoteModel(
+      id: id ?? this.id,
+      noteSubjectId: noteSubjectId ?? this.noteSubjectId,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      noteContent: noteContent ?? this.noteContent,
+      noteFileUrl: noteFileUrl ?? this.noteFileUrl,
+      likesCount: likesCount ?? this.likesCount,
+      commentsCount: commentsCount ?? this.commentsCount,
+      commentsLikesCount: commentsLikesCount ?? this.commentsLikesCount,
+      createDate: createDate ?? this.createDate,
+      bookmarksCount: bookmarksCount ?? this.bookmarksCount,
+
+      isLiked: isLiked ?? this.isLiked,
+      isBookmarked: isBookmarked ?? this.isBookmarked,
     );
   }
 }

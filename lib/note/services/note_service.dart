@@ -1,11 +1,11 @@
-// lib/Write_Post/note_service.dart
+// lib/note/services/note_service.dart
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-import 'package:studyshare/note/models/note_model.dart';
+import '../models/note_model.dart'; // 경로 확인 필요 (같은 폴더면 .만, 아니면 ..)
 
 // 과목 이름과 DB ID 매핑 데이터
 final Map<String, int> subjectToId = {
@@ -19,7 +19,7 @@ final Map<String, int> subjectToId = {
 class NoteService {
 
   static String get _baseUrl {
-    const port = '8081'; // 백엔드 포트 8081
+    const port = '8081'; // ⚠️ 백엔드 포트 확인 (8081)
 
     if (kIsWeb) {
       return 'http://localhost:$port/notes';
@@ -35,18 +35,14 @@ class NoteService {
           .get(Uri.parse(_baseUrl))
           .timeout(const Duration(seconds: 3));
 
-      if (response.statusCode >= 200 && response.statusCode < 500) {
-        return true;
-      } else {
-        return false;
-      }
+      return response.statusCode >= 200 && response.statusCode < 500;
     } catch (e) {
       print("서버 연결 실패 ($_baseUrl): $e");
       return false;
     }
   }
 
-  /// 노트 등록 API (POST /notes)
+  /// 노트 등록 API
   Future<bool> registerNote({
     required String title,
     required String bodyHtml,
@@ -62,6 +58,7 @@ class NoteService {
       'noteSubjectId': subjectId,
       'noteContent': bodyHtml,
       'noteFileUrl': fileUrl,
+      'userId': userId,
     };
 
     try {
@@ -73,24 +70,21 @@ class NoteService {
         body: jsonEncode(postData),
       );
 
-      if (response.statusCode == 201) {
-        return true;
-      } else {
-        print('서버 응답 실패: ${response.statusCode}, ${response.body}');
-        return false;
-      }
+      return response.statusCode == 201 || response.statusCode == 200;
     } catch (e) {
       print('네트워크 통신 오류: $e');
       return false;
     }
   }
 
-
-  /// 모든 노트 조회 (GET /notes)
-  Future<List<NoteModel>> fetchAllNotes() async {
+  /// 모든 노트 조회 (userId 포함)
+  // 💡 [핵심] userId를 받아서 쿼리 파라미터로 보냅니다.
+  Future<List<NoteModel>> fetchAllNotes(int userId) async {
     try {
+      final url = Uri.parse('$_baseUrl?userId=$userId'); // ?userId=1 추가
+
       final response = await http.get(
-        Uri.parse(_baseUrl),
+        url,
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -115,21 +109,15 @@ class NoteService {
         print('노트 조회 실패: ${response.statusCode}');
         return [];
       }
-    } on TimeoutException {
-      print('네트워크 요청 시간 초과');
-      return [];
     } catch (e) {
       print('네트워크 통신 오류 (조회): $e');
       return [];
     }
   }
 
-  // ⬇️⬇️⬇️ [추가된 함수] ⬇️⬇️⬇️
-
-  /// 특정 사용자가 작성한 노트 조회 (GET /notes/user/{userId})
+  /// 특정 사용자가 작성한 노트 조회
   Future<List<NoteModel>> getNotesByUserId(int userId) async {
     try {
-      // 백엔드 엔드포인트: /notes/user/{userId}
       final url = Uri.parse('$_baseUrl/user/$userId');
 
       final response = await http.get(
@@ -153,6 +141,36 @@ class NoteService {
     } catch (e) {
       print('네트워크 통신 오류 (유저별 조회): $e');
       return [];
+    }
+  }
+
+  /// 좋아요 요청 전송
+  Future<bool> sendLikeRequest(int noteId, int userId) async {
+    try {
+      final url = Uri.parse('$_baseUrl/$noteId/like?userId=$userId');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("좋아요 요청 실패: $e");
+      return false;
+    }
+  }
+
+  /// 북마크 요청 전송
+  Future<bool> sendBookmarkRequest(int noteId, int userId) async {
+    try {
+      final url = Uri.parse('$_baseUrl/$noteId/bookmark?userId=$userId');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("북마크 요청 실패: $e");
+      return false;
     }
   }
 }

@@ -40,7 +40,7 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
   void initState() {
     super.initState();
     // 페이지 진입 시 서버 상태 확인
-    //_checkInitialServerStatus();
+    _checkInitialServerStatus();
 
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {

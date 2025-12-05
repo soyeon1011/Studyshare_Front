@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:studyshare/bookmark/screens/my_bookmark_screen.dart';
 import 'package:studyshare/community/screens/my_community_screen.dart';
 import 'package:studyshare/login/Login_UI.dart';
 // import 'package:study_note/screens/main_screen.dart'; // <--- 문제가 되었던 이 줄을 삭제했습니다!
@@ -147,6 +148,9 @@ class MainScreen extends StatelessWidget {
               },
               onWriteCommunityTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCommunityScreen()));
+              },
+              onBookmarkTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBookmarkScreen()));
               },
             ),
             Stack(

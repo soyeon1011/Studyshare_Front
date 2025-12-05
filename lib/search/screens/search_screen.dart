@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:studyshare/bookmark/screens/my_bookmark_screen.dart';
 import 'package:studyshare/community/screens/my_community_screen.dart';
 import 'package:studyshare/login/Login_UI.dart';
 import 'package:studyshare/main/screens/home_main_screen.dart';
@@ -58,6 +59,9 @@ class SearchScreen extends StatelessWidget {
               },
               onWriteCommunityTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCommunityScreen()));
+              },
+              onBookmarkTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBookmarkScreen()));
               },
             ),
 

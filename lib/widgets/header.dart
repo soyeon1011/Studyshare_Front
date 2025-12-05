@@ -8,6 +8,7 @@ class AppHeader extends StatelessWidget {
   final VoidCallback onWriteNoteTap;
   final VoidCallback onLoginTap;
   final VoidCallback onWriteCommunityTap;
+  final VoidCallback onBookmarkTap;
 
   const AppHeader({
     super.key,
@@ -17,6 +18,7 @@ class AppHeader extends StatelessWidget {
     required this.onWriteNoteTap,
     required this.onLoginTap,
     required this.onWriteCommunityTap,
+    required this.onBookmarkTap,
   });
 
   @override
@@ -88,7 +90,7 @@ class AppHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _buildNavButton('StudyShare', onTap: onLogoTap),
-                  _buildNavButton('북마크'),
+                  _buildNavButton('북마크', onTap: onBookmarkTap),
                   _buildNavButton('노트 작성', onTap: onWriteNoteTap),
                   _buildNavButton('커뮤니티', onTap: onWriteCommunityTap),
                   _buildNavButton('프로필', onTap: onProfileTap),
