@@ -1,15 +1,18 @@
-// lib/community/models/community_model.dart
-
 class CommunityModel {
   final int id;
   final int userId;
   final String title;
-  final String category; // 과목 ID 대신 카테고리
+  final String category;
   final String content;
   final int likesCount;
   final int commentCount;
   final int commentLikeCount;
   final String createDate;
+
+  // 💡 추가된 필드
+  final int bookmarksCount;
+  final bool isLiked;
+  final bool isBookmarked;
 
   CommunityModel({
     required this.id,
@@ -21,22 +24,28 @@ class CommunityModel {
     required this.commentCount,
     required this.commentLikeCount,
     required this.createDate,
+    required this.bookmarksCount,
+    this.isLiked = false,
+    this.isBookmarked = false,
   });
 
   factory CommunityModel.fromJson(Map<String, dynamic> json) {
-    // 백엔드의 카멜 케이스/스네이크 케이스 모두 체크
     return CommunityModel(
       id: (json['id'] as num?)?.toInt() ?? 0,
-      userId: (json['userId'] as num?)?.toInt() ?? (json['user_id'] as num?)?.toInt() ?? 0,
-      title: json['title'] as String? ?? json['community_title'] as String? ?? '',
-      category: json['category'] as String? ?? json['community_category'] as String? ?? '',
-      content: json['content'] as String? ?? json['community_content'] as String? ?? '',
+      userId: (json['userId'] as num?)?.toInt() ?? 0,
+      title: json['title'] ?? '',
+      category: json['category'] ?? '',
+      content: json['content'] ?? '',
 
-      likesCount: (json['likesCount'] as num?)?.toInt() ?? (json['community_likes_count'] as num?)?.toInt() ?? 0,
-      commentCount: (json['commentCount'] as num?)?.toInt() ?? (json['community_comment_count'] as num?)?.toInt() ?? 0,
-      commentLikeCount: (json['commentLikeCount'] as num?)?.toInt() ?? (json['community_comment_like_count'] as num?)?.toInt() ?? 0,
+      likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
+      commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,
+      commentLikeCount: (json['commentLikeCount'] as num?)?.toInt() ?? 0,
+      bookmarksCount: (json['bookmarksCount'] as num?)?.toInt() ?? 0, // 💡 추가
 
-      createDate: json['createDate'] as String? ?? json['community_create_date'] as String? ?? '',
+      createDate: json['createDate'] ?? '',
+
+      isLiked: json['isLiked'] ?? false,
+      isBookmarked: json['isBookmarked'] ?? false,
     );
   }
 }

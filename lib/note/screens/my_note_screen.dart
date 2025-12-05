@@ -185,7 +185,7 @@ class MyNoteScreen extends StatelessWidget {
                 child: NoteCardContent(
                   title: note.title.isNotEmpty ? note.title : "(제목 없음)",
                   subject: subjectName,
-                  author: note.userId.toString(),
+                  author: "User ${note.userId}",
                   date: displayDate,
                   preview: note.noteContent.length > 100
                       ? "${note.noteContent.substring(0, 100)}..."
