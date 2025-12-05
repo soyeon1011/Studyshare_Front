@@ -173,4 +173,40 @@ class NoteService {
       return false;
     }
   }
+
+  // 💡 [추가] 내가 좋아요한 노트 목록 가져오기
+  Future<List<NoteModel>> fetchLikedNotes(int userId) async {
+    try {
+      // 백엔드: /notes/user/{id}/likes
+      final url = Uri.parse('$_baseUrl/user/$userId/likes');
+      final response = await http.get(url, headers: {'Content-Type': 'application/json'});
+
+      if (response.statusCode == 200) {
+        final List<dynamic> notesJson = jsonDecode(utf8.decode(response.bodyBytes));
+        return notesJson.map((json) => NoteModel.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('좋아요 목록 조회 실패: $e');
+      return [];
+    }
+  }
+
+  // 💡 [추가] 내가 북마크한 노트 목록 가져오기
+  Future<List<NoteModel>> fetchBookmarkedNotes(int userId) async {
+    try {
+      // 백엔드: /notes/user/{id}/bookmarks
+      final url = Uri.parse('$_baseUrl/user/$userId/bookmarks');
+      final response = await http.get(url, headers: {'Content-Type': 'application/json'});
+
+      if (response.statusCode == 200) {
+        final List<dynamic> notesJson = jsonDecode(utf8.decode(response.bodyBytes));
+        return notesJson.map((json) => NoteModel.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('북마크 목록 조회 실패: $e');
+      return [];
+    }
+  }
 }
