@@ -76,28 +76,28 @@ class MyCommunityScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          width: 90, height: 90,
+          width: 120, height: 120, // 아이콘 박스 크기 확대 (90 -> 120)
           decoration: const ShapeDecoration(color: Color(0xFFFFF2CB), shape: OvalBorder()),
-          child: Center(child: Image.asset('assets/images/my_write_post_yellow.png', width: 48, height: 43)),
+          child: Center(child: Image.asset('assets/images/my_write_post_yellow.png', width: 64, height: 58)),
         ),
         const SizedBox(height: 30),
-        const Text('커뮤니티', textAlign: TextAlign.center, style: TextStyle(fontSize: 36, fontWeight: FontWeight.w400)),
+        const Text('커뮤니티', textAlign: TextAlign.center, style: TextStyle(fontSize: 40, fontWeight: FontWeight.w400)), // 36 -> 40
         const SizedBox(height: 15),
-        const Text('등록된 게시글이 없습니다', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 20)),
+        const Text('등록된 게시글이 없습니다', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 24)), // 20 -> 24
         const SizedBox(height: 100),
-        Image.asset('assets/images/my_write_post_gray.png', width: 75, height: 68),
+        Image.asset('assets/images/my_write_post_gray.png', width: 100, height: 90),
         const SizedBox(height: 20),
-        const Text('아직 작성된 글이 없습니다', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 20)),
+        const Text('아직 작성된 글이 없습니다', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 24)), // 20 -> 24
         const SizedBox(height: 25),
         ElevatedButton.icon(
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen())),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFFFF2CB), foregroundColor: const Color(0xFFF4A908), elevation: 0,
-            minimumSize: const Size(170, 45),
+            minimumSize: const Size(200, 60), // 버튼 크기 확대
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          icon: const Icon(Icons.add, size: 24),
-          label: const Text('새 게시글 작성', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
+          icon: const Icon(Icons.add, size: 28),
+          label: const Text('새 게시글 작성', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400)),
         ),
       ],
     );
@@ -110,25 +110,24 @@ class MyCommunityScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          width: 90, height: 90,
+          width: 100, height: 100, // 90 -> 100
           decoration: const ShapeDecoration(color: Color(0xFFFFF2CB), shape: OvalBorder()),
-          child: Center(child: Image.asset('assets/images/my_write_post_yellow.png', width: 48, height: 43)),
+          child: Center(child: Image.asset('assets/images/my_write_post_yellow.png', width: 55, height: 50)),
         ),
         const SizedBox(height: 30),
-        const Text('커뮤니티', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w400)),
+        const Text('커뮤니티', style: TextStyle(fontSize: 40, fontWeight: FontWeight.w400)), // 36 -> 40
         const SizedBox(height: 15),
-        Text('${posts.length}개의 게시글을 확인해보세요', style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 20)),
-        const SizedBox(height: 50),
+        Text('${posts.length}개의 게시글을 확인해보세요', style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 24)), // 20 -> 24
+        const SizedBox(height: 60), // 50 -> 60
 
         ...posts.map((post) {
           final displayDate = logic.formatRelativeTime(post.createDate);
 
           return Padding(
-            padding: const EdgeInsets.only(bottom: 30.0),
+            padding: const EdgeInsets.only(bottom: 40.0), // 간격 30 -> 40
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 700),
+              constraints: const BoxConstraints(maxWidth: 1000), // 너비 700 -> 1000 (노트 화면과 동일)
               child: GestureDetector(
-                // 💡 [핵심 수정] 상세화면 갔다가 돌아오면 데이터 새로고침
                 onTap: () async {
                   await Navigator.push(
                     context,
@@ -136,18 +135,17 @@ class MyCommunityScreen extends StatelessWidget {
                       builder: (context) => CommunityDetailScreen(post: post),
                     ),
                   );
-                  // 상세 화면에서 돌아온 직후 실행됨
                   logic.refreshData();
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(35), // 패딩 20 -> 35
                   decoration: ShapeDecoration(
                     color: Colors.white,
                     shape: RoundedRectangleBorder(
                       side: const BorderSide(color: Color(0xFFCFCFCF)),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(15), // 둥글기 10 -> 15
                     ),
-                    shadows: const [BoxShadow(color: Color(0x19000000), blurRadius: 10, offset: Offset(0, 4))],
+                    shadows: const [BoxShadow(color: Color(0x19000000), blurRadius: 12, offset: Offset(0, 6))], // 그림자 강화
                   ),
                   child: PostCardContent(
                     title: post.title.isNotEmpty ? post.title : "(제목 없음)",
@@ -156,7 +154,7 @@ class MyCommunityScreen extends StatelessWidget {
                     date: displayDate,
                     preview: post.content.length > 100 ? "${post.content.substring(0, 100)}..." : post.content,
                     likes: post.likesCount,
-                    comments: post.commentCount, // 댓글 수
+                    comments: post.commentCount,
                     isLiked: post.isLiked,
                     isBookmarked: post.isBookmarked,
                     onLikeTap: () => logic.toggleLike(post.id),
@@ -168,7 +166,21 @@ class MyCommunityScreen extends StatelessWidget {
           );
         }).toList(),
 
-        const SizedBox(height: 50),
+        const SizedBox(height: 60),
+        // 하단 '새 게시글 작성' 버튼 추가 (노트 화면과 동일한 스타일)
+        Center(
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen())),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF4C542), foregroundColor: Colors.white, elevation: 0,
+              minimumSize: const Size(220, 65), // 버튼 크기
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            icon: const Icon(Icons.add, size: 30),
+            label: const Text('새 게시글 작성', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          ),
+        ),
+        const SizedBox(height: 100),
       ],
     );
   }
@@ -204,64 +216,81 @@ class PostCardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CircleAvatar(radius: 18, backgroundColor: Colors.transparent, child: Icon(Icons.person, size: 40, color: Colors.grey)),
-              SizedBox.shrink(),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(title, style: const TextStyle(color: Colors.black, fontSize: 26, fontFamily: 'Inter', fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: const Color(0xFFF4A908), width: 1.0),
-                ),
-                child: Text(category, style: const TextStyle(color: Colors.black, fontSize: 18, fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CircleAvatar(radius: 24, backgroundColor: Colors.transparent, child: Icon(Icons.person, size: 48, color: Colors.grey)), // 40 -> 48
+            SizedBox.shrink(),
+          ],
+        ),
+        const SizedBox(height: 16), // 12 -> 16
+        // 제목 크기 확대 (26 -> 32)
+        Text(title, style: const TextStyle(color: Colors.black, fontSize: 32, fontFamily: 'Inter', fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 12), // 8 -> 12
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), // 패딩 확대
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFF4A908), width: 1.2), // 테두리 1.0 -> 1.2
               ),
-              const SizedBox(width: 8),
-              Text('$author · $date', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 18, fontFamily: 'Inter', fontWeight: FontWeight.w700)),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Text(preview.replaceAll(RegExp(r'<[^>]*>'), ''), style: const TextStyle(color: Colors.black, fontSize: 22, fontFamily: 'Inter', fontWeight: FontWeight.w500), maxLines: 3, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 47),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  InkWell(
-                    onTap: onLikeTap,
-                    child: Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: isLiked ? Colors.red : Colors.black54, size: 30),
+              child: Text(category, style: const TextStyle(color: Colors.black, fontSize: 20, fontFamily: 'Inter', fontWeight: FontWeight.w700)), // 18 -> 20
+            ),
+            const SizedBox(width: 12), // 8 -> 12
+            Text('$author · $date', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 20, fontFamily: 'Inter', fontWeight: FontWeight.w700)), // 18 -> 20
+          ],
+        ),
+        const SizedBox(height: 20), // 15 -> 20
+        // 본문 미리보기 확대 (22 -> 24) 및 줄간격 추가
+        Text(preview.replaceAll(RegExp(r'<[^>]*>'), ''), style: const TextStyle(color: Colors.black, fontSize: 24, fontFamily: 'Inter', fontWeight: FontWeight.w500, height: 1.5), maxLines: 3, overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 55), // 47 -> 55
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                InkWell(
+                  onTap: onLikeTap,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Row(
+                      children: [
+                        Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: isLiked ? Colors.red : Colors.grey, size: 36), // 30 -> 36, 색상 grey로 통일
+                        const SizedBox(width: 8), // 5 -> 8
+                        Text('$likes', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 22, fontFamily: 'Inter', fontWeight: FontWeight.w700)), // 18 -> 22
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 5),
-                  Text('$likes', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 18, fontFamily: 'Inter', fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 15),
-                  const Icon(Icons.comment_outlined, color: Colors.black54, size: 25),
-                  const SizedBox(width: 5),
-                  Text('$comments', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 18, fontFamily: 'Inter', fontWeight: FontWeight.w700)),
-                ],
-              ),
-              InkWell(
-                onTap: onBookmarkTap,
-                child: Icon(isBookmarked ? Icons.bookmark : Icons.bookmark_border, size: 30, color: isBookmarked ? const Color(0xFFF4A908) : Colors.black54),
-              ),
-            ],
-          ),
-        ],
-      ),
+                ),
+                const SizedBox(width: 20), // 15 -> 20
+                InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.comment_outlined, color: Colors.black54, size: 32), // 25 -> 32
+                        const SizedBox(width: 8), // 5 -> 8
+                        Text('$comments', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 22, fontFamily: 'Inter', fontWeight: FontWeight.w700)), // 18 -> 22
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            InkWell(
+              onTap: onBookmarkTap,
+              child: Icon(isBookmarked ? Icons.bookmark : Icons.bookmark_border_outlined, size: 36, color: isBookmarked ? const Color(0xFFF4A908) : Colors.black54), // 30 -> 36
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

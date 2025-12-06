@@ -15,7 +15,6 @@ import 'package:studyshare/note/models/note_model.dart';
 import 'package:studyshare/community/services/community_service.dart';
 import 'package:studyshare/community/models/community_model.dart';
 
-// 💡 [추가] 상세 페이지 임포트
 import 'package:studyshare/note/screens/note_detail_screen.dart';
 import 'package:studyshare/community/screens/community_detail_screen.dart';
 
@@ -101,28 +100,28 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
     return Column(
       children: [
         Container(
-          width: 90, height: 90,
+          width: 120, height: 120, // 90 -> 120
           decoration: const ShapeDecoration(color: Color(0xFFF3E3FF), shape: OvalBorder()),
-          child: Center(child: Image.asset('assets/images/my_bookmark_purple.png', width: 48, height: 43)),
+          child: Center(child: Image.asset('assets/images/my_bookmark_purple.png', width: 64, height: 58)), // 48,43 -> 64,58
         ),
         const SizedBox(height: 30),
-        const Text('북마크', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w400)),
+        const Text('북마크', style: TextStyle(fontSize: 40, fontWeight: FontWeight.w400)), // 36 -> 40
         const SizedBox(height: 15),
-        const Text('북마크한 콘텐츠가 없습니다', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 20)),
+        const Text('북마크한 콘텐츠가 없습니다', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 24)), // 20 -> 24
         const SizedBox(height: 100),
-        Image.asset('assets/images/my_bookmark_gray.png', width: 75, height: 68),
+        Image.asset('assets/images/my_bookmark_gray.png', width: 100, height: 90), // 75,68 -> 100,90
         const SizedBox(height: 20),
-        const Text('아직 북마크한 게시글이 없습니다', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 20)),
+        const Text('아직 북마크한 게시글이 없습니다', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 24)), // 20 -> 24
         const SizedBox(height: 25),
         ElevatedButton.icon(
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MainScreen())),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFF3E3FF), foregroundColor: const Color(0xFF8F00FF), elevation: 0,
-            minimumSize: const Size(200, 45),
+            minimumSize: const Size(220, 60), // 200,45 -> 220,60
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          icon: const Icon(Icons.home, size: 24),
-          label: const Text('콘텐츠 구경하러 가기', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+          icon: const Icon(Icons.home, size: 28), // 24 -> 28
+          label: const Text('콘텐츠 구경하러 가기', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400)), // 18 -> 24
         ),
       ],
     );
@@ -132,15 +131,15 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
     return Column(
       children: [
         Container(
-          width: 90, height: 90,
+          width: 100, height: 100, // 90 -> 100
           decoration: const ShapeDecoration(color: Color(0xFFF3E3FF), shape: OvalBorder()),
-          child: Center(child: Image.asset('assets/images/my_bookmark_purple.png', width: 48, height: 43)),
+          child: Center(child: Image.asset('assets/images/my_bookmark_purple.png', width: 55, height: 50)), // 48,43 -> 55,50
         ),
         const SizedBox(height: 30),
-        const Text('북마크', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w400)),
+        const Text('북마크', style: TextStyle(fontSize: 40, fontWeight: FontWeight.w400)), // 36 -> 40
         const SizedBox(height: 15),
-        Text('북마크한 ${_allItems.length}개의 콘텐츠를 확인해보세요', style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 20)),
-        const SizedBox(height: 50),
+        Text('북마크한 ${_allItems.length}개의 콘텐츠를 확인해보세요', style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 24)), // 20 -> 24
+        const SizedBox(height: 60), // 50 -> 60
 
         ..._allItems.map((item) {
           String title = '';
@@ -155,7 +154,7 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
             title = item.title;
             category = "노트";
             author = "User ${item.userId}";
-            date = item.createDate;
+            date = item.createDate; // 필요시 포맷팅 로직 추가
             preview = item.noteContent.replaceAll(RegExp(r'<[^>]*>'), '');
             likes = item.likesCount;
             comments = item.commentsCount;
@@ -163,18 +162,17 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
             title = item.title;
             category = item.category;
             author = "User ${item.userId}";
-            date = item.createDate;
+            date = item.createDate; // 필요시 포맷팅 로직 추가
             preview = item.content.replaceAll(RegExp(r'<[^>]*>'), '');
             likes = item.likesCount;
             comments = item.commentCount;
           }
 
           return Padding(
-            padding: const EdgeInsets.only(bottom: 30.0),
+            padding: const EdgeInsets.only(bottom: 40.0), // 30 -> 40
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 700),
+              constraints: const BoxConstraints(maxWidth: 1000), // 💡 [핵심] 너비 700 -> 1000
 
-              // 💡 [수정] 타입에 따른 페이지 이동 로직 추가
               child: GestureDetector(
                 onTap: () {
                   if (item is NoteModel) {
@@ -184,14 +182,14 @@ class _MyBookmarkScreenState extends State<MyBookmarkScreen> {
                   }
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(35), // 💡 [핵심] 패딩 20 -> 35
                   decoration: ShapeDecoration(
                     color: Colors.white,
                     shape: RoundedRectangleBorder(
                       side: const BorderSide(color: Color(0xFFCFCFCF)),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(15), // 10 -> 15
                     ),
-                    shadows: const [BoxShadow(color: Color(0x19000000), blurRadius: 10, offset: Offset(0, 4))],
+                    shadows: const [BoxShadow(color: Color(0x19000000), blurRadius: 12, offset: Offset(0, 6))], // 그림자 강화
                   ),
                   child: PostCardContent(
                     title: title.isNotEmpty ? title : "(제목 없음)",
@@ -235,56 +233,55 @@ class PostCardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CircleAvatar(radius: 18, backgroundColor: Colors.transparent, child: Icon(Icons.person, size: 40, color: Colors.grey)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: const Color(0xFF8F00FF), width: 1.0),
-                ),
-                child: Text(category, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CircleAvatar(radius: 24, backgroundColor: Colors.transparent, child: Icon(Icons.person, size: 48, color: Colors.grey)), // 18/40 -> 24/48
+          ],
+        ),
+        const SizedBox(height: 16), // 12 -> 16
+        // 제목 크기 확대 (26 -> 32)
+        Text(title, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 12), // 8 -> 12
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), // 8/4 -> 12/6
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6), // 4 -> 6
+                border: Border.all(color: const Color(0xFF8F00FF), width: 1.2), // 1.0 -> 1.2
               ),
-              const SizedBox(width: 8),
-              Text('$author · $date', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 18, fontWeight: FontWeight.w700)),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Text(preview, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500), maxLines: 3, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 47),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.favorite, color: Colors.red, size: 30),
-                  const SizedBox(width: 5),
-                  Text('$likes', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 18, fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 15),
-                  const Icon(Icons.comment_outlined, color: Colors.black54, size: 25),
-                  const SizedBox(width: 5),
-                  Text('$comments', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 18, fontWeight: FontWeight.w700)),
-                ],
-              ),
-              const Icon(Icons.bookmark, size: 30, color: Color(0xFF8F00FF)),
-            ],
-          ),
-        ],
-      ),
+              child: Text(category, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)), // 18 -> 20
+            ),
+            const SizedBox(width: 12), // 8 -> 12
+            Text('$author · $date', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 20, fontWeight: FontWeight.w700)), // 18 -> 20
+          ],
+        ),
+        const SizedBox(height: 20), // 15 -> 20
+        // 본문 미리보기 확대 (22 -> 24) 및 줄간격 추가
+        Text(preview, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500, height: 1.5), maxLines: 3, overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 55), // 47 -> 55
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.favorite, color: Colors.red, size: 36), // 30 -> 36
+                const SizedBox(width: 8), // 5 -> 8
+                Text('$likes', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 22, fontWeight: FontWeight.w700)), // 18 -> 22
+                const SizedBox(width: 20), // 15 -> 20
+                const Icon(Icons.comment_outlined, color: Colors.black54, size: 32), // 25 -> 32
+                const SizedBox(width: 8), // 5 -> 8
+                Text('$comments', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 22, fontWeight: FontWeight.w700)), // 18 -> 22
+              ],
+            ),
+            const Icon(Icons.bookmark, size: 36, color: Color(0xFF8F00FF)), // 30 -> 36
+          ],
+        ),
+      ],
     );
   }
 }

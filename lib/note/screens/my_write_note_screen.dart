@@ -1,4 +1,4 @@
-// lib/Write_Post/,mywritenotescreen.dart
+// lib/Write_Post/my_write_note_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +15,6 @@ import 'note_writing_screen.dart';
 
 void main() {
   runApp(
-    // 💡 [핵심 수정] MultiProvider로 앱을 감싸서 Logic을 등록해야 합니다!
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => StudyShareLogic()),
@@ -37,13 +36,30 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
-class MyWriteNoteScreen extends StatelessWidget {
+// 💡 [수정] StatelessWidget -> StatefulWidget으로 변경하여 진입 시 자동 갱신 구현
+class MyWriteNoteScreen extends StatefulWidget {
   const MyWriteNoteScreen({super.key});
 
   @override
+  State<MyWriteNoteScreen> createState() => _MyWriteNoteScreenState();
+}
+
+class _MyWriteNoteScreenState extends State<MyWriteNoteScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // 💡 [핵심] 화면이 생성될 때 데이터를 새로고침합니다.
+    // Provider가 트리에 있는지 확인 후 호출 (Microtask로 지연 실행하여 안전하게 처리)
+    Future.microtask(() {
+      if (mounted) {
+        context.read<StudyShareLogic>().refreshData();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // 💡 StudyShareLogic 객체를 Provider를 통해 구독합니다.
+    // StudyShareLogic 객체를 Provider를 통해 구독합니다.
     return Consumer<StudyShareLogic>(builder: (context, logic, child) {
       return Scaffold(
         backgroundColor: Colors.white,
@@ -51,31 +67,37 @@ class MyWriteNoteScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 120.0),
             child: Column(
-              children:[
+              children: [
                 AppHeader(
                   onLogoTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const MainScreen()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => const MainScreen()));
                   },
                   onSearchTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => SearchScreen()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => SearchScreen()));
                   },
                   onProfileTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => ProfileScreen()));
                   },
                   onWriteNoteTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCommunityScreen()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => const MyCommunityScreen()));
                   },
                   onLoginTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => const LoginScreen()));
                   },
                   onWriteCommunityTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen()));
                   },
                   onBookmarkTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBookmarkScreen()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => const MyBookmarkScreen()));
                   },
                 ),
-
 
                 // 2. 헤더 섹션 (타이틀, 검색, 작성 버튼)
                 _buildHeaderSection(context),
@@ -95,7 +117,6 @@ class MyWriteNoteScreen extends StatelessWidget {
                       child: Row(
                         children: <Widget>[
                           _TableHeaderItem(title: '구분', flex: 1),
-                          // 💡 [수정] 제목 헤더의 정렬을 가운데로 변경
                           _TableHeaderItem(title: '제목', flex: 3),
                           _TableHeaderItem(title: '작성자', flex: 1),
                           _TableHeaderItem(title: '조회수', flex: 1),
@@ -114,38 +135,37 @@ class MyWriteNoteScreen extends StatelessWidget {
                     child: logic.isLoadingStatus
                         ? const Center(child: CircularProgressIndicator())
                         : logic.notes.isEmpty
-                            ? const Center(
-                                child: Text('게시된 노트가 없습니다.',
-                                    style: TextStyle(color: Colors.grey)))
-                            : ListView.builder(
-                                itemCount: logic.notes.length,
-                                itemBuilder: (context, index) {
-                                  final note = logic.notes[index];
+                        ? const Center(
+                        child: Text('게시된 노트가 없습니다.',
+                            style: TextStyle(color: Colors.grey)))
+                        : ListView.builder(
+                      itemCount: logic.notes.length,
+                      itemBuilder: (context, index) {
+                        final note = logic.notes[index];
 
-                                  // 등록일 표시에 상대 시간 로직 적용
-                                  String displayDate =
-                                      logic.formatRelativeTime(note.createDate);
+                        String displayDate =
+                        logic.formatRelativeTime(note.createDate);
 
-                                  return Column(
-                                    children: [
-                                      _TableDataItem(
-                                        category: logic.getSubjectNameById(
-                                            note.noteSubjectId),
-                                        title: note.title.isNotEmpty
-                                            ? note.title
-                                            : "(제목 없음)",
-                                        author: note.userId.toString(),
-                                        views: note.likesCount.toString(),
-                                        date: displayDate, // 상대 시간 출력
-                                      ),
-                                      const Divider(
-                                          height: 1,
-                                          thickness: 1,
-                                          color: Color(0xFFDDDDDD)),
-                                    ],
-                                  );
-                                },
-                              ),
+                        return Column(
+                          children: [
+                            _TableDataItem(
+                              category: logic.getSubjectNameById(
+                                  note.noteSubjectId),
+                              title: note.title.isNotEmpty
+                                  ? note.title
+                                  : "(제목 없음)",
+                              author: note.userId.toString(),
+                              views: note.likesCount.toString(),
+                              date: displayDate,
+                            ),
+                            const Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: Color(0xFFDDDDDD)),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
 
@@ -179,53 +199,6 @@ class MyWriteNoteScreen extends StatelessWidget {
     });
   }
 
-  // 서버 상태를 시각적으로 보여주는 위젯
-  Widget _buildServerStatusWidget(StudyShareLogic logic) {
-    Color color;
-    String message;
-    IconData icon;
-
-    if (logic.isLoadingStatus) {
-      color = Colors.blueGrey;
-      message = '서버 연결 상태 확인 중...';
-      icon = Icons.sync;
-    } else if (logic.isServerConnected) {
-      color = Colors.green.shade700;
-      message = '🟢 서버 연결됨: API 호출 준비 완료 (localhost:8081)';
-      icon = Icons.check_circle;
-    } else {
-      color = Colors.red.shade700;
-      message = '🔴 서버 연결 실패: Spring Boot 서버(8081)를 실행하세요.';
-      icon = Icons.warning;
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-      color: color.withOpacity(0.1),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 8),
-              Text(
-                message,
-                style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   // 검색바와 버튼 영역 (헤더 섹션)
   Widget _buildHeaderSection(BuildContext context) {
     return Padding(
@@ -250,7 +223,7 @@ class MyWriteNoteScreen extends StatelessWidget {
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                     border: const OutlineInputBorder(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(5.0),
@@ -291,7 +264,7 @@ class MyWriteNoteScreen extends StatelessWidget {
                     ),
                   ),
                   child:
-                      const Icon(Icons.search, color: Colors.white, size: 24),
+                  const Icon(Icons.search, color: Colors.white, size: 24),
                 ),
               ),
 
@@ -331,7 +304,7 @@ class MyWriteNoteScreen extends StatelessWidget {
 }
 
 // =================================================================
-// 테이블 구성 요소 위젯 (Helper Classes) - StudyShareScreen 밖에 정의
+// 테이블 구성 요소 위젯 (Helper Classes)
 // =================================================================
 
 class _TableHeaderItem extends StatelessWidget {
@@ -340,9 +313,9 @@ class _TableHeaderItem extends StatelessWidget {
   final Alignment alignment;
   const _TableHeaderItem(
       {super.key,
-      required this.title,
-      required this.flex,
-      this.alignment = Alignment.center});
+        required this.title,
+        required this.flex,
+        this.alignment = Alignment.center});
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -381,7 +354,6 @@ class _TableDataItem extends StatelessWidget {
     return Row(
       children: <Widget>[
         _TableDataCell(text: category, flex: 1),
-        // 💡 [수정] 제목 셀의 정렬을 가운데로 변경
         _TableDataCell(text: title, flex: 3, alignment: Alignment.center),
         _TableDataCell(text: author, flex: 1),
         _TableDataCell(text: views, flex: 1),

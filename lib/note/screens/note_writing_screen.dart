@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:html_editor_enhanced/html_editor.dart';
 import 'package:studyshare/note/services/note_service.dart';
+import 'my_write_note_screen.dart'; // [추가] 내 노트 목록 화면 import
 
 class NoteWritingScreen extends StatefulWidget {
   const NoteWritingScreen({super.key});
@@ -104,12 +105,17 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
       id2: 1, // Service 함수가 이 인수를 여전히 기대하므로, 값 1을 전달합니다.
     );
 
-    // 3. UI 로직: 결과에 따른 피드백 제공
+    // 3. UI 로직: 결과에 따른 피드백 제공 및 화면 이동
     if (mounted) {
       ScaffoldMessenger.of(context).removeCurrentSnackBar(); // 로딩 스낵바 제거
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ 노트가 성공적으로 등록되었습니다.')),
+        );
+        // [수정] 성공 시 내 노트 목록 화면으로 이동 (현재 화면 대체)
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MyWriteNoteScreen()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -188,12 +194,12 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                     alignmentOffset: const Offset(0, 5),
                                     style: MenuStyle(
                                       backgroundColor:
-                                          WidgetStateProperty.all(Colors.white),
+                                      WidgetStateProperty.all(Colors.white),
                                       elevation: WidgetStateProperty.all(4),
                                       shape: WidgetStateProperty.all(
                                         RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(8)),
+                                            BorderRadius.circular(8)),
                                       ),
                                     ),
                                     builder: (BuildContext context,
@@ -220,12 +226,12 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                             border: Border.all(
                                                 color: Colors.grey.shade300),
                                             borderRadius:
-                                                BorderRadius.circular(4),
+                                            BorderRadius.circular(4),
                                             color: Colors.white,
                                           ),
                                           child: Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            MainAxisAlignment.spaceBetween,
                                             children: [
                                               Expanded(
                                                 child: Text(
@@ -233,13 +239,13 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                                   style: TextStyle(
                                                     fontSize: 15,
                                                     color: selectedSubject ==
-                                                            '선택'
+                                                        '선택'
                                                         ? Colors.grey.shade500
                                                         : Colors.black87,
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                   overflow:
-                                                      TextOverflow.ellipsis,
+                                                  TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               const Icon(Icons.arrow_drop_down,
@@ -250,21 +256,21 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                       );
                                     },
                                     menuChildren:
-                                        subjectData.entries.map((entry) {
+                                    subjectData.entries.map((entry) {
                                       final String category = entry.key;
                                       final List<String> subjects = entry.value;
 
                                       return SubmenuButton(
                                         style: ButtonStyle(
                                           backgroundColor:
-                                              WidgetStateProperty.resolveWith(
+                                          WidgetStateProperty.resolveWith(
                                                   (states) {
-                                            if (states.contains(
-                                                WidgetState.hovered)) {
-                                              return Colors.grey.shade100;
-                                            }
-                                            return Colors.white;
-                                          }),
+                                                if (states.contains(
+                                                    WidgetState.hovered)) {
+                                                  return Colors.grey.shade100;
+                                                }
+                                                return Colors.white;
+                                              }),
                                         ),
                                         menuChildren: subjects.map((subject) {
                                           return MenuItemButton(
@@ -277,8 +283,8 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                             },
                                             style: ButtonStyle(
                                               backgroundColor:
-                                                  WidgetStateProperty
-                                                      .resolveWith((states) {
+                                              WidgetStateProperty
+                                                  .resolveWith((states) {
                                                 if (states.contains(
                                                     WidgetState.hovered)) {
                                                   return Colors.grey.shade100;
@@ -289,20 +295,20 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                             child: Container(
                                               width: 150,
                                               padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 8),
+                                              const EdgeInsets.symmetric(
+                                                  vertical: 8),
                                               child: Text(
                                                 subject,
                                                 style: TextStyle(
                                                   fontSize: 14,
                                                   fontWeight:
-                                                      selectedSubject == subject
-                                                          ? FontWeight.bold
-                                                          : FontWeight.normal,
+                                                  selectedSubject == subject
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal,
                                                   color:
-                                                      selectedSubject == subject
-                                                          ? Colors.black
-                                                          : Colors.black87,
+                                                  selectedSubject == subject
+                                                      ? Colors.black
+                                                      : Colors.black87,
                                                 ),
                                               ),
                                             ),
@@ -314,7 +320,7 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                               vertical: 8),
                                           child: Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
                                                 category,
@@ -342,7 +348,7 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                               child: Container(
                                 decoration: BoxDecoration(
                                   border:
-                                      Border.all(color: Colors.grey.shade300),
+                                  Border.all(color: Colors.grey.shade300),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: SizedBox(
@@ -356,9 +362,9 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                       autoAdjustHeight: false,
                                     ),
                                     htmlToolbarOptions:
-                                        const HtmlToolbarOptions(
+                                    const HtmlToolbarOptions(
                                       toolbarPosition:
-                                          ToolbarPosition.aboveEditor,
+                                      ToolbarPosition.aboveEditor,
                                       toolbarType: ToolbarType.nativeScrollable,
                                     ),
                                     otherOptions: const OtherOptions(
@@ -390,50 +396,50 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                   const SizedBox(height: 25),
                                   Row(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       Expanded(
                                           child: Column(
-                                        crossAxisAlignment:
+                                            crossAxisAlignment:
                                             CrossAxisAlignment.start,
-                                        children: [
-                                          Row(children: const [
-                                            Icon(Icons.edit_note,
-                                                size: 22, color: Colors.grey),
-                                            SizedBox(width: 8),
-                                            Text('구조화된 작성',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16)),
-                                          ]),
-                                          const SizedBox(height: 15),
-                                          _tipText('제목과 소제목을 활용하세요'),
-                                          _tipText('번호나 불릿 포인트로 정리하세요'),
-                                          _tipText('예제와 설명을 분리하세요'),
-                                        ],
-                                      )),
+                                            children: [
+                                              Row(children: const [
+                                                Icon(Icons.edit_note,
+                                                    size: 22, color: Colors.grey),
+                                                SizedBox(width: 8),
+                                                Text('구조화된 작성',
+                                                    style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16)),
+                                              ]),
+                                              const SizedBox(height: 15),
+                                              _tipText('제목과 소제목을 활용하세요'),
+                                              _tipText('번호나 불릿 포인트로 정리하세요'),
+                                              _tipText('예제와 설명을 분리하세요'),
+                                            ],
+                                          )),
                                       const SizedBox(width: 40),
                                       Expanded(
                                           child: Column(
-                                        crossAxisAlignment:
+                                            crossAxisAlignment:
                                             CrossAxisAlignment.start,
-                                        children: [
-                                          Row(children: const [
-                                            Icon(Icons.lightbulb_outline,
-                                                size: 22,
-                                                color: Color(0xFFD4AF37)),
-                                            SizedBox(width: 8),
-                                            Text('효과적인 학습',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16)),
-                                          ]),
-                                          const SizedBox(height: 15),
-                                          _tipText('핵심 개념을 명확히 하세요'),
-                                          _tipText('실제 예제를 포함하세요'),
-                                          _tipText('자신만의 이해 방법을 추가하세요'),
-                                        ],
-                                      )),
+                                            children: [
+                                              Row(children: const [
+                                                Icon(Icons.lightbulb_outline,
+                                                    size: 22,
+                                                    color: Color(0xFFD4AF37)),
+                                                SizedBox(width: 8),
+                                                Text('효과적인 학습',
+                                                    style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16)),
+                                              ]),
+                                              const SizedBox(height: 15),
+                                              _tipText('핵심 개념을 명확히 하세요'),
+                                              _tipText('실제 예제를 포함하세요'),
+                                              _tipText('자신만의 이해 방법을 추가하세요'),
+                                            ],
+                                          )),
                                     ],
                                   ),
                                 ],
@@ -454,11 +460,11 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                           onPressed: _submitNote,
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor:
-                                                const Color(0xFFF4C542),
+                                            const Color(0xFFF4C542),
                                             foregroundColor: Colors.white,
                                             shape: RoundedRectangleBorder(
                                                 borderRadius:
-                                                    BorderRadius.circular(0)),
+                                                BorderRadius.circular(0)),
                                           ),
                                           child: const Text('등록하기',
                                               style: TextStyle(
@@ -476,11 +482,11 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                               Navigator.pop(context),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor:
-                                                const Color(0xFFAAAAAA),
+                                            const Color(0xFFAAAAAA),
                                             foregroundColor: Colors.white,
                                             shape: RoundedRectangleBorder(
                                                 borderRadius:
-                                                    BorderRadius.circular(0)),
+                                                BorderRadius.circular(0)),
                                           ),
                                           child: const Text('취소',
                                               style: TextStyle(
