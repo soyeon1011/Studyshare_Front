@@ -1,3 +1,5 @@
+// lib/community/models/community_model.dart
+
 class CommunityModel {
   final int id;
   final int userId;
@@ -31,19 +33,26 @@ class CommunityModel {
 
   factory CommunityModel.fromJson(Map<String, dynamic> json) {
     return CommunityModel(
+      // 🚨 [중요] id가 null이면 0이 되므로, 서버에서 id를 보내는지 확인 필수
       id: (json['id'] as num?)?.toInt() ?? 0,
+
       userId: (json['userId'] as num?)?.toInt() ?? 0,
       title: json['title'] ?? '',
       category: json['category'] ?? '',
       content: json['content'] ?? '',
 
+      // 🚨 [중요] 서버 DTO의 @JsonProperty("likesCount")와 일치해야 함
       likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
+
       commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,
       commentLikeCount: (json['commentLikeCount'] as num?)?.toInt() ?? 0,
-      bookmarksCount: (json['bookmarksCount'] as num?)?.toInt() ?? 0, // 💡 추가
+
+      // 🚨 [중요] 서버 DTO의 @JsonProperty("bookmarksCount")와 일치해야 함
+      bookmarksCount: (json['bookmarksCount'] as num?)?.toInt() ?? 0,
 
       createDate: json['createDate'] ?? '',
 
+      // 🚨 [중요] 서버 DTO의 @JsonProperty("isLiked")와 일치해야 함
       isLiked: json['isLiked'] ?? false,
       isBookmarked: json['isBookmarked'] ?? false,
     );

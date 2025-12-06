@@ -98,6 +98,16 @@ class CommunityShareLogic extends ChangeNotifier {
     }
   }
 
+// 💡 [검색 기능 추가] 제목 또는 내용에 검색어가 포함된 게시글 찾기
+  List<CommunityModel> searchPosts(String query) {
+    if (query.isEmpty) return [];
+    final q = query.toLowerCase();
+    return _posts.where((post) {
+      return post.title.toLowerCase().contains(q) ||
+          post.content.toLowerCase().contains(q);
+    }).toList();
+  }
+
   String formatRelativeTime(String createDateString) {
     if (createDateString.isEmpty) return '날짜 정보 없음';
     final createdDate = DateTime.tryParse(createDateString);

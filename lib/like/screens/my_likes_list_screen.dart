@@ -1,52 +1,63 @@
 // lib/like/screens/my_likes_list_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:studyshare/bookmark/screens/my_bookmark_screen.dart';
 import 'package:studyshare/community/screens/my_community_screen.dart';
-import 'package:studyshare/login/Login_UI.dart';
+import 'package:studyshare/community/screens/my_write_community_screen.dart';
 import 'package:studyshare/main/screens/home_main_screen.dart';
-import 'package:studyshare/note/screens/my_note_screen.dart';
 import 'package:studyshare/profile/screens/profile_screen.dart';
 import 'package:studyshare/search/screens/search_screen.dart';
 import 'package:studyshare/widgets/header.dart';
+import 'package:studyshare/login/Login_UI.dart';
+import 'package:studyshare/note/screens/my_note_screen.dart';
+import 'package:studyshare/bookmark/screens/my_bookmark_screen.dart'; // 북마크 화면 이동용
 
-// 💡 데이터 로딩을 위해 추가
+// 💡 서비스 & 모델 임포트
 import 'package:studyshare/note/services/note_service.dart';
 import 'package:studyshare/note/models/note_model.dart';
+import 'package:studyshare/community/services/community_service.dart';
+import 'package:studyshare/community/models/community_model.dart';
+
+// 💡 상세 화면 임포트
+import 'package:studyshare/note/screens/note_detail_screen.dart';
+import 'package:studyshare/community/screens/community_detail_screen.dart';
 
 class LikesScreen extends StatefulWidget {
   const LikesScreen({super.key});
 
   @override
-  State<LikesScreen> createState() => _LikedScreenState();
+  State<LikesScreen> createState() => _LikesScreenState();
 }
 
-class _LikedScreenState extends State<LikesScreen> {
-  // 1. 선택 상태를 관리할 리스트 [노트, 게시글]
-  final List<bool> _isSelected = [true, false];
-
-  // 💡 2. 서비스와 데이터 변수 준비
+class _LikesScreenState extends State<LikesScreen> {
   final NoteService _noteService = NoteService();
-  List<NoteModel> _likedNotes = [];
+  final CommunityService _communityService = CommunityService();
+
+  List<dynamic> _allItems = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadLikedData(); // 화면 시작 시 데이터 가져오기
+    _loadAllLikes();
   }
 
-  // 💡 3. 데이터 가져오는 함수
-  Future<void> _loadLikedData() async {
-    // 임시 유저 ID 1 (나중에 로그인 정보로 교체)
+  // 💡 좋아요한 노트 & 게시글 모두 가져와서 합치기
+  Future<void> _loadAllLikes() async {
+    // 임시 유저 ID 1
     final notes = await _noteService.fetchLikedNotes(1);
+    final communities = await _communityService.fetchLikedCommunities(1);
 
     if (mounted) {
       setState(() {
-        _likedNotes = notes;
+        _allItems = [...notes, ...communities];
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _handleRefresh() async {
+    setState(() { _isLoading = true; });
+    await _loadAllLikes();
   }
 
   @override
@@ -55,187 +66,233 @@ class _LikedScreenState extends State<LikesScreen> {
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // 1. 헤더 (북마크 화면과 동일)
             AppHeader(
               onLogoTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MainScreen())),
               onSearchTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SearchScreen())),
               onProfileTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen())),
-              onLoginTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
-              },
-              onWriteNoteTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyNoteScreen()));
-              },
-              onWriteCommunityTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCommunityScreen()));
-              },
-              onBookmarkTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBookmarkScreen()));
-              },
+              onWriteNoteTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyNoteScreen())),
+              onLoginTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen())),
+              onWriteCommunityTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen())),
+              onBookmarkTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBookmarkScreen())),
             ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 80.0),
-              child: Column(
-                children: [
-                  // --- 상단 아이콘 및 제목 ---
-                  const CircleAvatar(
-                    radius: 45,
-                    backgroundColor: Color(0x33FF0000), // 옅은 빨간색
-                    child: Icon(Icons.favorite, color: Colors.red, size: 45),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 40.0),
+                  child: RefreshIndicator(
+                    onRefresh: _handleRefresh,
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator(color: Colors.red))
+                        : _allItems.isEmpty
+                        ? _buildEmptyState()
+                        : _buildDataList(),
                   ),
-                  const SizedBox(height: 20),
-                  const Text('좋아요 글', style: TextStyle(color: Colors.black, fontSize: 36, fontWeight: FontWeight.w400)),
-                  const SizedBox(height: 15),
-                  const Text('좋아요를 누른 노트와 콘텐츠를 확인하세요', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 20)),
-                  const SizedBox(height: 50),
-
-                  // --- 탭 버튼 ---
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(25.0),
-                    ),
-                    child: ToggleButtons(
-                      isSelected: _isSelected,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _isSelected.length; i++) {
-                            _isSelected[i] = false;
-                          }
-                          _isSelected[index] = true;
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(25.0),
-                      borderColor: Colors.transparent,
-                      selectedBorderColor: Colors.transparent,
-                      fillColor: Colors.white,
-                      splashColor: Colors.grey.withOpacity(0.12),
-                      hoverColor: Colors.grey.withOpacity(0.04),
-                      children: <Widget>[
-                        _buildTab('노트 (${_likedNotes.length})', Icons.description_outlined),
-                        _buildTab('게시글 (0)', Icons.chat_bubble_outline),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 60),
-
-                  // 💡 4. 로딩 및 데이터 표출 로직
-                  if (_isLoading)
-                    const CircularProgressIndicator()
-                  else if (_isSelected[0]) ...[
-                    // [노트 탭]
-                    if (_likedNotes.isEmpty)
-                      _buildEmptyState('노트')
-                    else
-                      _buildNoteList(), // 리스트 그리기
-                  ] else ...[
-                    // [게시글 탭] (아직 구현 안 함)
-                    _buildEmptyState('게시글'),
-                  ]
-                ],
+                ),
               ),
             ),
+            const SizedBox(height: 50),
           ],
         ),
       ),
     );
   }
 
-  // 💡 리스트 뷰 빌더
-  Widget _buildNoteList() {
-    return ListView.separated(
-      shrinkWrap: true, // Column 안에서 ListView 쓸 때 필수
-      physics: const NeverScrollableScrollPhysics(), // 전체 스크롤 사용
-      itemCount: _likedNotes.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 20),
-      itemBuilder: (context, index) {
-        final note = _likedNotes[index];
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 5,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                note.title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              // 내용 미리보기 (HTML 태그 제거는 생략하고 간단히 표시)
-              Text(
-                note.noteContent.replaceAll(RegExp(r'<[^>]*>'), ''), // 태그 제거
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const Icon(Icons.favorite, color: Colors.red, size: 16),
-                  const SizedBox(width: 4),
-                  Text('${note.likesCount}'),
-                  const SizedBox(width: 12),
-                  const Icon(Icons.bookmark, color: Color(0xFF8F00FF), size: 16),
-                  const SizedBox(width: 4),
-                  Text('${note.bookmarksCount}'), // 북마크 개수
-                ],
-              )
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyState(String type) {
+  // 💡 데이터가 없을 때 (북마크 스타일 유지하되 아이콘/색상은 좋아요 테마로)
+  Widget _buildEmptyState() {
     return Column(
       children: [
-        Image.asset(
-          'assets/images/my_likes_list_gray.png',
-          width: 100,
-          height: 100,
+        Container(
+          width: 120, height: 120,
+          decoration: const ShapeDecoration(color: Color(0xFFFFE3E3), shape: OvalBorder()), // 연한 빨강
+          child: const Center(child: Icon(Icons.favorite, color: Colors.red, size: 50)),
         ),
+        const SizedBox(height: 30),
+        const Text('좋아요', style: TextStyle(fontSize: 40, fontWeight: FontWeight.w400)),
+        const SizedBox(height: 15),
+        const Text('좋아요한 콘텐츠가 없습니다', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 24)),
+        const SizedBox(height: 100),
+
+        Image.asset('assets/images/my_likes_list_gray.png', width: 100, height: 90),
         const SizedBox(height: 20),
-        Text(
-          '아직 좋아요한 $type가 없습니다.',
-          style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 20),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          '마음에 드는 $type에 좋아요를 눌러보세요',
-          style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 16),
+        const Text('아직 좋아요한 게시글이 없습니다', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 24)),
+        const SizedBox(height: 25),
+
+        ElevatedButton.icon(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MainScreen())),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFFE3E3),
+            foregroundColor: Colors.red,
+            elevation: 0,
+            minimumSize: const Size(220, 60),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          icon: const Icon(Icons.home, size: 28),
+          label: const Text('콘텐츠 구경하러 가기', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400)),
         ),
       ],
     );
   }
 
-  Widget _buildTab(String text, IconData icon) {
-    return SizedBox(
-      width: 400, // 버튼 너비
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+  // 💡 데이터 리스트 (북마크 화면 구조 복사)
+  Widget _buildDataList() {
+    return Column(
+      children: [
+        Container(
+          width: 100, height: 100,
+          decoration: const ShapeDecoration(color: Color(0xFFFFE3E3), shape: OvalBorder()),
+          child: const Center(child: Icon(Icons.favorite, color: Colors.red, size: 50)),
+        ),
+        const SizedBox(height: 30),
+        const Text('좋아요', style: TextStyle(fontSize: 40, fontWeight: FontWeight.w400)),
+        const SizedBox(height: 15),
+        Text('좋아요한 ${_allItems.length}개의 콘텐츠를 확인해보세요', style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 24)),
+        const SizedBox(height: 60),
+
+        ..._allItems.map((item) {
+          String title = '';
+          String category = '';
+          String author = '';
+          String date = '';
+          String preview = '';
+          int likes = 0;
+          int comments = 0;
+
+          if (item is NoteModel) {
+            title = item.title;
+            category = "노트";
+            author = "User ${item.userId}";
+            date = item.createDate;
+            preview = item.noteContent.replaceAll(RegExp(r'<[^>]*>'), '');
+            likes = item.likesCount;
+            comments = item.commentsCount;
+          } else if (item is CommunityModel) {
+            title = item.title;
+            category = item.category;
+            author = "User ${item.userId}";
+            date = item.createDate;
+            preview = item.content.replaceAll(RegExp(r'<[^>]*>'), '');
+            likes = item.likesCount;
+            comments = item.commentCount;
+          }
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 40.0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: GestureDetector(
+                onTap: () {
+                  if (item is NoteModel) {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => NoteDetailScreen(note: item)));
+                  } else if (item is CommunityModel) {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CommunityDetailScreen(post: item)));
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(35),
+                  decoration: ShapeDecoration(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      side: const BorderSide(color: Color(0xFFCFCFCF)),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    shadows: const [BoxShadow(color: Color(0x19000000), blurRadius: 12, offset: Offset(0, 6))],
+                  ),
+                  child: LikesPostCardContent(
+                    title: title.isNotEmpty ? title : "(제목 없음)",
+                    category: category,
+                    author: author,
+                    date: date,
+                    preview: preview.length > 100 ? "${preview.substring(0, 100)}..." : preview,
+                    likes: likes,
+                    comments: comments,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+        const SizedBox(height: 80),
+      ],
+    );
+  }
+}
+
+// 💡 리스트 아이템 UI (북마크의 PostCardContent와 동일한 구조)
+class LikesPostCardContent extends StatelessWidget {
+  final String title;
+  final String category;
+  final String author;
+  final String date;
+  final String preview;
+  final int likes;
+  final int comments;
+
+  const LikesPostCardContent({
+    super.key,
+    required this.title,
+    required this.category,
+    required this.author,
+    required this.date,
+    required this.preview,
+    required this.likes,
+    required this.comments,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(icon, size: 20),
-            const SizedBox(width: 8),
-            Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            CircleAvatar(radius: 24, backgroundColor: Colors.transparent, child: Icon(Icons.person, size: 48, color: Colors.grey)),
           ],
         ),
-      ),
+        const SizedBox(height: 16),
+        Text(title, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.red, width: 1.2), // 카테고리 보라색 유지
+              ),
+              child: Text(category, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+            ),
+            const SizedBox(width: 12),
+            Text('$author · $date', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 20, fontWeight: FontWeight.w700)),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Text(preview, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500, height: 1.5), maxLines: 3, overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 55),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.favorite, color: Colors.red, size: 36),
+                const SizedBox(width: 8),
+                Text('$likes', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 22, fontWeight: FontWeight.w700)),
+                const SizedBox(width: 20),
+                const Icon(Icons.comment_outlined, color: Colors.black54, size: 32),
+                const SizedBox(width: 8),
+                Text('$comments', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 22, fontWeight: FontWeight.w700)),
+              ],
+            ),
+            // 좋아요 화면이므로 오른쪽 아이콘도 하트로 통일하거나 북마크로 유지 (일단 하트로 변경)
+            const Icon(Icons.favorite, size: 36, color: Colors.red),
+          ],
+        ),
+      ],
     );
   }
 }

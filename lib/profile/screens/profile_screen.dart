@@ -84,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 30),
 
-                        // 💡 [수정] 로직의 실제 데이터 바인딩
+                        // 💡 [수정] 로직의 실제 데이터 바인딩 (노트, 글, 좋아요)
                         Row(
                           children: [
                             _buildStatItem(logic.noteCount.toString(), '작성한 노트'),
@@ -126,7 +126,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildProfileMenuItem(
                             icon: Icons.bookmark_border,
                             title: '북마크',
-                            count: '0' // 북마크는 추후 구현
+                            count: logic.bookmarkCount.toString(), // [수정] 실제 북마크 개수 반영
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBookmarkScreen()));
+                            }
                         ),
 
                         const SizedBox(height: 50),

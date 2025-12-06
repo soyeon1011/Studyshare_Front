@@ -164,4 +164,16 @@ class StudyShareLogic extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // 💡 [검색 기능 추가] 제목 또는 내용에 검색어가 포함된 노트 반환
+  List<NoteModel> searchNotes(String query) {
+    if (query.isEmpty) return [];
+    return _notes.where((note) {
+      final title = note.title.toLowerCase();
+      final content = note.noteContent.toLowerCase();
+      final q = query.toLowerCase();
+      return title.contains(q) || content.contains(q);
+    }).toList();
+  }
+
 }
