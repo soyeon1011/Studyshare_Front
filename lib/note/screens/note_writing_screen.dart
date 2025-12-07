@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:html_editor_enhanced/html_editor.dart';
 import 'package:studyshare/note/services/note_service.dart';
-import 'my_write_note_screen.dart'; // [추가] 내 노트 목록 화면 import
+import 'my_write_note_screen.dart'; // 내 노트 목록 화면 import
 
 class NoteWritingScreen extends StatefulWidget {
   const NoteWritingScreen({super.key});
@@ -25,17 +25,19 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
 
   final NoteService _noteService = NoteService();
 
+  // 💡 [수정] 메뉴 컨트롤러를 클래스 멤버 변수로 선언 (build 메서드 밖에서 유지)
+  final MenuController _menuController = MenuController();
+
   // 서버 상태 관련 상태 변수
   bool _isServerConnected = false;
   bool _isLoadingStatus = true;
 
-  // 💡 수정: selectedSubject 초기값을 '국어(공통)'으로 설정
   String selectedCategory = '국어';
   String selectedSubject = '국어(공통)';
   bool _isMenuOpen = false;
+
   final HtmlEditorController _htmlController = HtmlEditorController();
   final TextEditingController _titleController = TextEditingController();
-  String initialHtmlContent = '';
 
   @override
   void initState() {
@@ -45,7 +47,7 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
 
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
-        _htmlController.setText('dddssddddssssss');
+        _htmlController.setText(''); // 초기값 (빈 값으로 시작하거나 임시 텍스트)
       }
     });
   }
@@ -96,23 +98,21 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
     );
 
     // 2. 비즈니스 로직 위임 (Service 호출)
-    // 💡 [핵심 수정] DTO에 맞게 함수 인수를 정리하고 호출합니다.
     final success = await _noteService.registerNote(
       title: title,
       bodyHtml: bodyHtml,
       selectedSubject: selectedSubject,
       userId: 1,
-      id2: 1, // Service 함수가 이 인수를 여전히 기대하므로, 값 1을 전달합니다.
+      id2: 1,
     );
 
     // 3. UI 로직: 결과에 따른 피드백 제공 및 화면 이동
     if (mounted) {
-      ScaffoldMessenger.of(context).removeCurrentSnackBar(); // 로딩 스낵바 제거
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ 노트가 성공적으로 등록되었습니다.')),
         );
-        // [수정] 성공 시 내 노트 목록 화면으로 이동 (현재 화면 대체)
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MyWriteNoteScreen()),
@@ -132,7 +132,6 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
       body: Stack(
         children: [
           Column(
-            // 서버 상태 위젯을 위에 추가하기 위해 Column으로 감쌈
             children: [
               _buildServerStatusWidget(), // 서버 상태 표시 위젯
               Expanded(
@@ -190,8 +189,22 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
 
                                   // 4. 계층형 메뉴 (Nested Menu) - MenuAnchor
                                   MenuAnchor(
-                                    controller: MenuController(),
+                                    // 💡 [수정] 위에서 선언한 컨트롤러 연결
+                                    controller: _menuController,
                                     alignmentOffset: const Offset(0, 5),
+
+                                    // 💡 [수정] 메뉴 상태 동기화를 위한 콜백 추가
+                                    onOpen: () {
+                                      setState(() {
+                                        _isMenuOpen = true;
+                                      });
+                                    },
+                                    onClose: () {
+                                      setState(() {
+                                        _isMenuOpen = false;
+                                      });
+                                    },
+
                                     style: MenuStyle(
                                       backgroundColor:
                                       WidgetStateProperty.all(Colors.white),
@@ -201,21 +214,19 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                             borderRadius:
                                             BorderRadius.circular(8)),
                                       ),
+                                      // 💡 [추가] 메뉴가 화면 밖으로 나가지 않도록 최대 높이 제한
+                                      maximumSize: WidgetStateProperty.all(const Size(300, 500)),
                                     ),
                                     builder: (BuildContext context,
                                         MenuController controller,
                                         Widget? child) {
                                       return InkWell(
                                         onTap: () {
-                                          setState(() {
-                                            if (controller.isOpen) {
-                                              controller.close();
-                                              _isMenuOpen = false;
-                                            } else {
-                                              controller.open();
-                                              _isMenuOpen = true;
-                                            }
-                                          });
+                                          if (controller.isOpen) {
+                                            controller.close();
+                                          } else {
+                                            controller.open();
+                                          }
                                         },
                                         child: Container(
                                           width: 180,
@@ -278,8 +289,9 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
                                               setState(() {
                                                 selectedCategory = category;
                                                 selectedSubject = subject;
-                                                _isMenuOpen = false;
                                               });
+                                              // 💡 [수정] 항목 선택 시 메뉴 닫기
+                                              _menuController.close();
                                             },
                                             style: ButtonStyle(
                                               backgroundColor:
@@ -515,9 +527,8 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
             Positioned.fill(
               child: GestureDetector(
                 onTap: () {
-                  setState(() {
-                    _isMenuOpen = false;
-                  });
+                  // 💡 [수정] 배경 터치 시 컨트롤러를 통해 닫기
+                  _menuController.close();
                 },
                 child: Container(
                   color: Colors.transparent,
