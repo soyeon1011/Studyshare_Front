@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:html_editor_enhanced/html_editor.dart';
 import 'package:studyshare/note/services/note_service.dart';
-import 'my_write_note_screen.dart'; // 내 노트 목록 화면 import
+import 'my_write_note_screen.dart';
 
 class NoteWritingScreen extends StatefulWidget {
   const NoteWritingScreen({super.key});
@@ -13,7 +13,7 @@ class NoteWritingScreen extends StatefulWidget {
 }
 
 class _NoteWritingScreenState extends State<NoteWritingScreen> {
-  // UI 표시를 위한 과목 데이터
+  // 과목 데이터
   final Map<String, List<String>> subjectData = {
     '국어': ['국어(공통)', '화법과작문', '독서', '언어와 매체', '문학', '국어(기타)'],
     '수학': ['수학(공통)', '수학 I', '수학 II', '미적분', '확률과 통계', '기하', '경제 수학', '수학(기타)'],
@@ -24,16 +24,15 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
   };
 
   final NoteService _noteService = NoteService();
+  final MenuController _menuController = MenuController(); // 메뉴 컨트롤러
 
-  // 💡 [수정] 메뉴 컨트롤러를 클래스 멤버 변수로 선언 (build 메서드 밖에서 유지)
-  final MenuController _menuController = MenuController();
-
-  // 서버 상태 관련 상태 변수
   bool _isServerConnected = false;
   bool _isLoadingStatus = true;
 
   String selectedCategory = '국어';
   String selectedSubject = '국어(공통)';
+
+  // 💡 [핵심] 메뉴가 열렸는지 확인하는 변수
   bool _isMenuOpen = false;
 
   final HtmlEditorController _htmlController = HtmlEditorController();
@@ -42,17 +41,12 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
   @override
   void initState() {
     super.initState();
-    // 페이지 진입 시 서버 상태 확인
     _checkInitialServerStatus();
-
     Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _htmlController.setText(''); // 초기값 (빈 값으로 시작하거나 임시 텍스트)
-      }
+      if (mounted) _htmlController.setText('');
     });
   }
 
-  // 서버 상태 확인 로직
   void _checkInitialServerStatus() async {
     final isConnected = await _noteService.checkServerStatus();
     if (mounted) {
@@ -69,35 +63,21 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
     super.dispose();
   }
 
-  /// 노트 등록 버튼 클릭 시 호출되는 함수입니다.
   void _submitNote() async {
     final title = _titleController.text;
     final bodyHtml = await _htmlController.getText();
 
-    // 1. UI 유효성 검사
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('제목을 입력해주세요.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('제목을 입력해주세요.')));
       return;
     }
-
-    // 서버 연결 상태를 확인하고, 연결이 안 된 경우 등록 중단
     if (!_isServerConnected) {
-      ScaffoldMessenger.of(context).removeCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('🔴 서버에 연결되지 않아 등록할 수 없습니다.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('🔴 서버 미연결')));
       return;
     }
 
-    // UI 로직: 로딩 상태 표시
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('노트 등록 중...')),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('노트 등록 중...')));
 
-    // 2. 비즈니스 로직 위임 (Service 호출)
     final success = await _noteService.registerNote(
       title: title,
       bodyHtml: bodyHtml,
@@ -106,21 +86,13 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
       id2: 1,
     );
 
-    // 3. UI 로직: 결과에 따른 피드백 제공 및 화면 이동
     if (mounted) {
       ScaffoldMessenger.of(context).removeCurrentSnackBar();
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ 노트가 성공적으로 등록되었습니다.')),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MyWriteNoteScreen()),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ 등록 완료')));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MyWriteNoteScreen()));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('❌ 노트 등록에 실패했습니다. 서버/네트워크 오류 확인.')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ 등록 실패')));
       }
     }
   }
@@ -133,386 +105,139 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
         children: [
           Column(
             children: [
-              _buildServerStatusWidget(), // 서버 상태 표시 위젯
+              // _buildServerStatusWidget(),
               Expanded(
                 child: SafeArea(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1000),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 120.0, vertical: 30.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 1. 타이틀
-                            const Text('노트 글쓰기',
-                                style: TextStyle(
-                                    fontSize: 28, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 15),
-                            Container(
-                                width: double.infinity,
-                                height: 4,
-                                color: const Color(0xFFF4C542)),
+                  child: SingleChildScrollView(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1200),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 120.0, vertical: 30.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('노트 글쓰기', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 15),
+                              Container(width: double.infinity, height: 4, color: const Color(0xFFF4C542)),
 
-                            // 3. 제목 및 과목 선택 줄
-                            Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              decoration: BoxDecoration(
-                                  border: Border(
-                                      bottom: BorderSide(
-                                          color: Colors.grey.shade300))),
-                              child: Row(
-                                children: [
-                                  const SizedBox(width: 20),
-                                  const Text('제목',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold)),
-                                  const SizedBox(width: 40),
-
-                                  // 제목 입력창
-                                  Expanded(
-                                    child: TextField(
-                                      controller: _titleController,
-                                      decoration: InputDecoration(
-                                        hintText: '제목을 입력해 주세요',
-                                        hintStyle: TextStyle(
-                                            color: Colors.grey.shade400),
-                                        border: InputBorder.none,
-                                        isDense: true,
-                                        contentPadding: EdgeInsets.zero,
+                              // 제목 및 과목 선택 줄
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade300))),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(width: 20),
+                                    const Text('제목', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                    const SizedBox(width: 40),
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _titleController,
+                                        decoration: InputDecoration(
+                                          hintText: '제목을 입력해 주세요',
+                                          hintStyle: TextStyle(color: Colors.grey.shade400),
+                                          border: InputBorder.none,
+                                          isDense: true,
+                                        ),
+                                        style: const TextStyle(fontSize: 16),
                                       ),
-                                      style: const TextStyle(fontSize: 16),
                                     ),
-                                  ),
 
-                                  // 4. 계층형 메뉴 (Nested Menu) - MenuAnchor
-                                  MenuAnchor(
-                                    // 💡 [수정] 위에서 선언한 컨트롤러 연결
-                                    controller: _menuController,
-                                    alignmentOffset: const Offset(0, 5),
+                                    // 💡 [핵심] MenuAnchor (기존 방식 유지)
+                                    MenuAnchor(
+                                      controller: _menuController,
+                                      alignmentOffset: const Offset(0, 5),
+                                      // 메뉴 열림/닫힘 상태 동기화
+                                      onOpen: () => setState(() => _isMenuOpen = true),
+                                      onClose: () => setState(() => _isMenuOpen = false),
 
-                                    // 💡 [수정] 메뉴 상태 동기화를 위한 콜백 추가
-                                    onOpen: () {
-                                      setState(() {
-                                        _isMenuOpen = true;
-                                      });
-                                    },
-                                    onClose: () {
-                                      setState(() {
-                                        _isMenuOpen = false;
-                                      });
-                                    },
-
-                                    style: MenuStyle(
-                                      backgroundColor:
-                                      WidgetStateProperty.all(Colors.white),
-                                      elevation: WidgetStateProperty.all(4),
-                                      shape: WidgetStateProperty.all(
-                                        RoundedRectangleBorder(
-                                            borderRadius:
-                                            BorderRadius.circular(8)),
+                                      style: MenuStyle(
+                                        backgroundColor: WidgetStateProperty.all(Colors.white),
+                                        elevation: WidgetStateProperty.all(4),
+                                        shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                                        // 💡 메뉴 높이 제한 (너무 길면 잘리므로 적당히)
+                                        maximumSize: WidgetStateProperty.all(const Size(300, 300)),
                                       ),
-                                      // 💡 [추가] 메뉴가 화면 밖으로 나가지 않도록 최대 높이 제한
-                                      maximumSize: WidgetStateProperty.all(const Size(300, 500)),
+                                      builder: (context, controller, child) {
+                                        return InkWell(
+                                          onTap: () {
+                                            controller.isOpen ? controller.close() : controller.open();
+                                          },
+                                          child: Container(
+                                            width: 180, height: 40,
+                                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                                            decoration: BoxDecoration(
+                                              border: Border.all(color: Colors.grey.shade300),
+                                              borderRadius: BorderRadius.circular(4),
+                                              color: Colors.white,
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Expanded(
+                                                  child: Text(selectedSubject, style: TextStyle(fontSize: 15, color: selectedSubject == '선택' ? Colors.grey.shade500 : Colors.black87, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
+                                                ),
+                                                const Icon(Icons.arrow_drop_down, color: Colors.black54),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      menuChildren: subjectData.entries.map((entry) {
+                                        return SubmenuButton(
+                                          style: ButtonStyle(backgroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.hovered) ? Colors.grey.shade100 : Colors.white)),
+                                          menuChildren: entry.value.map((subject) {
+                                            return MenuItemButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  selectedCategory = entry.key;
+                                                  selectedSubject = subject;
+                                                });
+                                                _menuController.close();
+                                              },
+                                              style: ButtonStyle(backgroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.hovered) ? Colors.grey.shade100 : Colors.white)),
+                                              child: Container(width: 150, padding: const EdgeInsets.symmetric(vertical: 8), child: Text(subject, style: TextStyle(fontSize: 14, fontWeight: selectedSubject == subject ? FontWeight.bold : FontWeight.normal))),
+                                            );
+                                          }).toList(),
+                                          child: Container(width: 120, padding: const EdgeInsets.symmetric(vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(entry.key, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))])),
+                                        );
+                                      }).toList(),
                                     ),
-                                    builder: (BuildContext context,
-                                        MenuController controller,
-                                        Widget? child) {
-                                      return InkWell(
-                                        onTap: () {
-                                          if (controller.isOpen) {
-                                            controller.close();
-                                          } else {
-                                            controller.open();
-                                          }
-                                        },
-                                        child: Container(
-                                          width: 180,
-                                          height: 40,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 12),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                                color: Colors.grey.shade300),
-                                            borderRadius:
-                                            BorderRadius.circular(4),
-                                            color: Colors.white,
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  selectedSubject,
-                                                  style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: selectedSubject ==
-                                                        '선택'
-                                                        ? Colors.grey.shade500
-                                                        : Colors.black87,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                  overflow:
-                                                  TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              const Icon(Icons.arrow_drop_down,
-                                                  color: Colors.black54),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    menuChildren:
-                                    subjectData.entries.map((entry) {
-                                      final String category = entry.key;
-                                      final List<String> subjects = entry.value;
-
-                                      return SubmenuButton(
-                                        style: ButtonStyle(
-                                          backgroundColor:
-                                          WidgetStateProperty.resolveWith(
-                                                  (states) {
-                                                if (states.contains(
-                                                    WidgetState.hovered)) {
-                                                  return Colors.grey.shade100;
-                                                }
-                                                return Colors.white;
-                                              }),
-                                        ),
-                                        menuChildren: subjects.map((subject) {
-                                          return MenuItemButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                selectedCategory = category;
-                                                selectedSubject = subject;
-                                              });
-                                              // 💡 [수정] 항목 선택 시 메뉴 닫기
-                                              _menuController.close();
-                                            },
-                                            style: ButtonStyle(
-                                              backgroundColor:
-                                              WidgetStateProperty
-                                                  .resolveWith((states) {
-                                                if (states.contains(
-                                                    WidgetState.hovered)) {
-                                                  return Colors.grey.shade100;
-                                                }
-                                                return Colors.white;
-                                              }),
-                                            ),
-                                            child: Container(
-                                              width: 150,
-                                              padding:
-                                              const EdgeInsets.symmetric(
-                                                  vertical: 8),
-                                              child: Text(
-                                                subject,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight:
-                                                  selectedSubject == subject
-                                                      ? FontWeight.bold
-                                                      : FontWeight.normal,
-                                                  color:
-                                                  selectedSubject == subject
-                                                      ? Colors.black
-                                                      : Colors.black87,
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                        child: Container(
-                                          width: 120,
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 8),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                category,
-                                                style: const TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Colors.black87,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 30),
-
-                            // HTML Editor 적용 영역 (메뉴가 열려있을 때 입력 방지)
-                            AbsorbPointer(
-                              absorbing: _isMenuOpen,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border:
-                                  Border.all(color: Colors.grey.shade300),
-                                  borderRadius: BorderRadius.circular(4),
+                                  ],
                                 ),
+                              ),
+
+                              // 💡 [핵심 해결책] 메뉴가 열리면 공간을 벌려서 에디터를 아래로 밀어버림
+                              // 이렇게 하면 메뉴가 에디터 위를 덮지 않아서 클릭이 100% 잘 됩니다.
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                height: _isMenuOpen ? 280 : 30, // 평소엔 30, 열리면 280만큼 벌림
+                              ),
+
+                              // HTML Editor
+                              Container(
+                                decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(4)),
                                 child: SizedBox(
                                   height: 480,
                                   child: HtmlEditor(
                                     key: UniqueKey(),
                                     controller: _htmlController,
-                                    htmlEditorOptions: const HtmlEditorOptions(
-                                      hint: '내용을 입력하세요...',
-                                      initialText: '',
-                                      autoAdjustHeight: false,
-                                    ),
-                                    htmlToolbarOptions:
-                                    const HtmlToolbarOptions(
-                                      toolbarPosition:
-                                      ToolbarPosition.aboveEditor,
-                                      toolbarType: ToolbarType.nativeScrollable,
-                                    ),
-                                    otherOptions: const OtherOptions(
-                                      height: 480,
-                                    ),
+                                    htmlEditorOptions: const HtmlEditorOptions(hint: '내용을 입력하세요...', initialText: '', autoAdjustHeight: false),
+                                    htmlToolbarOptions: const HtmlToolbarOptions(toolbarPosition: ToolbarPosition.aboveEditor, toolbarType: ToolbarType.nativeScrollable),
+                                    otherOptions: const OtherOptions(height: 480),
                                   ),
                                 ),
                               ),
-                            ),
 
-                            const SizedBox(height: 40),
-                            const Divider(color: Colors.grey, thickness: 0.5),
-                            const SizedBox(height: 40),
-
-                            // 6. 작성 팁 (UI 유지)
-                            Container(
-                              padding: const EdgeInsets.all(30),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text('작성 팁',
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 25),
-                                  Row(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                            children: [
-                                              Row(children: const [
-                                                Icon(Icons.edit_note,
-                                                    size: 22, color: Colors.grey),
-                                                SizedBox(width: 8),
-                                                Text('구조화된 작성',
-                                                    style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 16)),
-                                              ]),
-                                              const SizedBox(height: 15),
-                                              _tipText('제목과 소제목을 활용하세요'),
-                                              _tipText('번호나 불릿 포인트로 정리하세요'),
-                                              _tipText('예제와 설명을 분리하세요'),
-                                            ],
-                                          )),
-                                      const SizedBox(width: 40),
-                                      Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                            children: [
-                                              Row(children: const [
-                                                Icon(Icons.lightbulb_outline,
-                                                    size: 22,
-                                                    color: Color(0xFFD4AF37)),
-                                                SizedBox(width: 8),
-                                                Text('효과적인 학습',
-                                                    style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 16)),
-                                              ]),
-                                              const SizedBox(height: 15),
-                                              _tipText('핵심 개념을 명확히 하세요'),
-                                              _tipText('실제 예제를 포함하세요'),
-                                              _tipText('자신만의 이해 방법을 추가하세요'),
-                                            ],
-                                          )),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 50),
-
-                            // 7. 버튼
-                            Center(
-                              child: SizedBox(
-                                width: 400,
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: SizedBox(
-                                        height: 60,
-                                        child: ElevatedButton(
-                                          onPressed: _submitNote,
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                            const Color(0xFFF4C542),
-                                            foregroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                BorderRadius.circular(0)),
-                                          ),
-                                          child: const Text('등록하기',
-                                              style: TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 20),
-                                    Expanded(
-                                      child: SizedBox(
-                                        height: 60,
-                                        child: ElevatedButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                            const Color(0xFFAAAAAA),
-                                            foregroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                BorderRadius.circular(0)),
-                                          ),
-                                          child: const Text('취소',
-                                              style: TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 80),
-                          ],
+                              const SizedBox(height: 40),
+                              const Divider(color: Colors.grey, thickness: 0.5),
+                              const SizedBox(height: 40),
+                              _buildTipsSection(),
+                              const SizedBox(height: 50),
+                              _buildButtons(),
+                              const SizedBox(height: 80),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -522,17 +247,12 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
             ],
           ),
 
-          // 메뉴가 열려있을 때 다른 위젯 상호작용 방지 (Stack으로 구현)
+          // 메뉴 닫기용 투명 배경 (메뉴 열렸을 때만 활성화)
           if (_isMenuOpen)
             Positioned.fill(
               child: GestureDetector(
-                onTap: () {
-                  // 💡 [수정] 배경 터치 시 컨트롤러를 통해 닫기
-                  _menuController.close();
-                },
-                child: Container(
-                  color: Colors.transparent,
-                ),
+                onTap: () => _menuController.close(),
+                child: Container(color: Colors.transparent),
               ),
             ),
         ],
@@ -540,66 +260,40 @@ class _NoteWritingScreenState extends State<NoteWritingScreen> {
     );
   }
 
-  // 서버 상태를 시각적으로 보여주는 위젯
+  // Helper Widgets (기존 유지)
   Widget _buildServerStatusWidget() {
-    Color color;
-    String message;
-    IconData icon;
+    Color color; String message; IconData icon;
+    if (_isLoadingStatus) { color = Colors.blueGrey; message = '서버 확인 중...'; icon = Icons.sync; }
+    else if (_isServerConnected) { color = Colors.green.shade700; message = '🟢 서버 연결됨'; icon = Icons.check_circle; }
+    else { color = Colors.red.shade700; message = '🔴 서버 미연결'; icon = Icons.warning; }
+    return Container(width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20), color: color.withOpacity(0.1), child: Center(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, size: 16, color: color), const SizedBox(width: 8), Text(message, style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 13))])));
+  }
 
-    if (_isLoadingStatus) {
-      color = Colors.blueGrey;
-      message = '서버 연결 상태 확인 중...';
-      icon = Icons.sync;
-    } else if (_isServerConnected) {
-      color = Colors.green.shade700;
-      message = '🟢 서버 연결됨: API 호출 준비 완료 (localhost:8081)';
-      icon = Icons.check_circle;
-    } else {
-      color = Colors.red.shade700;
-      message = '🔴 서버 연결 실패: Spring Boot 서버(8081)를 실행하세요.';
-      icon = Icons.warning;
-    }
-
+  Widget _buildTipsSection() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-      color: color.withOpacity(0.1),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 8),
-              Text(
-                message,
-                style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      padding: const EdgeInsets.all(30),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('작성 팁', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 25),
+        Row(children: [
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: const [Icon(Icons.edit_note, size: 22, color: Colors.grey), SizedBox(width: 8), Text('구조화된 작성', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]), const SizedBox(height: 15), _tipText('제목과 소제목 활용'), _tipText('번호/불릿 포인트 사용'), _tipText('예제 분리')])),
+          const SizedBox(width: 40),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: const [Icon(Icons.lightbulb_outline, size: 22, color: Color(0xFFD4AF37)), SizedBox(width: 8), Text('효과적인 학습', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]), const SizedBox(height: 15), _tipText('핵심 개념 명확히'), _tipText('실제 예제 포함'), _tipText('나만의 이해 방법')])),
+        ]),
+      ]),
     );
   }
 
+  Widget _buildButtons() {
+    return Center(child: SizedBox(width: 400, child: Row(children: [
+      Expanded(child: SizedBox(height: 60, child: ElevatedButton(onPressed: _submitNote, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF4C542), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))), child: const Text('등록하기', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))))),
+      const SizedBox(width: 20),
+      Expanded(child: SizedBox(height: 60, child: ElevatedButton(onPressed: () => Navigator.pop(context), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFAAAAAA), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))), child: const Text('취소', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))))),
+    ])));
+  }
+
   Widget _tipText(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0, left: 5.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("• ", style: TextStyle(fontSize: 15, height: 1.2)),
-          const SizedBox(width: 5),
-          Expanded(
-              child: Text(text,
-                  style: const TextStyle(fontSize: 15, height: 1.2))),
-        ],
-      ),
-    );
+    return Padding(padding: const EdgeInsets.only(bottom: 8.0, left: 5.0), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text("• ", style: TextStyle(fontSize: 15, height: 1.2)), const SizedBox(width: 5), Expanded(child: Text(text, style: const TextStyle(fontSize: 15, height: 1.2)))]));
   }
 }

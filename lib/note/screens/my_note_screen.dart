@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:studyshare/bookmark/screens/my_bookmark_screen.dart';
 import 'package:studyshare/community/screens/my_community_screen.dart';
+import 'package:studyshare/community/screens/my_write_community_screen.dart';
 import 'package:studyshare/login/Login_UI.dart';
 import 'package:studyshare/main/screens/home_main_screen.dart';
 import 'package:studyshare/profile/screens/profile_screen.dart';
@@ -16,6 +17,16 @@ import 'package:studyshare/note/screens/note_detail_screen.dart';
 
 class MyNoteScreen extends StatelessWidget {
   const MyNoteScreen({super.key});
+
+  // 💡 [핵심] HTML 태그 제거 및 텍스트 정리 함수
+  String _stripHtml(String htmlString) {
+    // 1. <...> 태그 제거
+    String text = htmlString.replaceAll(RegExp(r'<[^>]*>'), '');
+    // 2. &nbsp; 등 특수문자 공백 처리
+    text = text.replaceAll('&nbsp;', ' ');
+    // 3. 앞뒤 공백 제거 및 연속 공백 정리
+    return text.trim().replaceAll(RegExp(r'\s+'), ' ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +44,7 @@ class MyNoteScreen extends StatelessWidget {
                   onProfileTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen())),
                   onWriteNoteTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteNoteScreen())),
                   onLoginTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen())),
-                  onWriteCommunityTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCommunityScreen())),
+                  onWriteCommunityTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteCommunityScreen())),
                   onBookmarkTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBookmarkScreen())),
                 ),
 
@@ -75,7 +86,7 @@ class MyNoteScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          width: 120, height: 120, // 아이콘 박스도 조금 키움
+          width: 120, height: 120,
           decoration: const ShapeDecoration(color: Color(0x3310595F), shape: OvalBorder()),
           child: Center(child: Image.asset('assets/images/my_write_note_green.png', width: 64, height: 58)),
         ),
@@ -126,10 +137,20 @@ class MyNoteScreen extends StatelessWidget {
           final subjectName = logic.getSubjectNameById(note.noteSubjectId);
           final displayDate = logic.formatRelativeTime(note.createDate);
 
+          // 💡 미리보기 텍스트 생성 (HTML 태그 제거)
+          String previewText = _stripHtml(note.noteContent);
+          if (previewText.isEmpty && note.noteContent.contains('<img')) {
+            previewText = "📷 (이미지 파일 포함)";
+          } else if (previewText.isEmpty) {
+            previewText = "(내용 없음)";
+          } else if (previewText.length > 100) {
+            previewText = "${previewText.substring(0, 100)}...";
+          }
+
           return Padding(
-            padding: const EdgeInsets.only(bottom: 40.0), // 간격 증가
+            padding: const EdgeInsets.only(bottom: 40.0),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1000), // 💡 [핵심] 너비 700 -> 1000
+              constraints: const BoxConstraints(maxWidth: 1000),
               child: GestureDetector(
                 onTap: () async {
                   await Navigator.push(
@@ -141,12 +162,12 @@ class MyNoteScreen extends StatelessWidget {
                   logic.refreshData();
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(35), // 💡 [핵심] 내부 여백 20 -> 35
+                  padding: const EdgeInsets.all(35),
                   decoration: ShapeDecoration(
                     color: Colors.white,
                     shape: RoundedRectangleBorder(
                       side: const BorderSide(color: Color(0xFFCFCFCF)),
-                      borderRadius: BorderRadius.circular(15), // 둥글기 증가
+                      borderRadius: BorderRadius.circular(15),
                     ),
                     shadows: const [BoxShadow(color: Color(0x19000000), blurRadius: 12, offset: Offset(0, 6))],
                   ),
@@ -155,7 +176,7 @@ class MyNoteScreen extends StatelessWidget {
                     subject: subjectName,
                     author: "User ${note.userId}",
                     date: displayDate,
-                    preview: note.noteContent.length > 100 ? "${note.noteContent.substring(0, 100)}..." : note.noteContent,
+                    preview: previewText, // 💡 수정된 미리보기 적용
                     likes: note.likesCount,
                     comments: note.commentsCount,
                     isLiked: note.isLiked,
@@ -176,7 +197,7 @@ class MyNoteScreen extends StatelessWidget {
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyWriteNoteScreen())),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFF4C542), foregroundColor: Colors.white, elevation: 0,
-              minimumSize: const Size(220, 65), // 버튼 크기 증가
+              minimumSize: const Size(220, 65),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.add, size: 30),
@@ -189,6 +210,7 @@ class MyNoteScreen extends StatelessWidget {
   }
 }
 
+// (NoteCardContent는 기존과 동일하게 유지)
 class NoteCardContent extends StatelessWidget {
   final String title;
   final String subject;
@@ -227,12 +249,11 @@ class NoteCardContent extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            CircleAvatar(radius: 24, backgroundColor: Colors.transparent, child: Icon(Icons.person, size: 48, color: Colors.grey)), // 아이콘 확대
+            CircleAvatar(radius: 24, backgroundColor: Colors.transparent, child: Icon(Icons.person, size: 48, color: Colors.grey)),
             SizedBox.shrink(),
           ],
         ),
         const SizedBox(height: 16),
-        // 💡 제목 크기 확대 (26 -> 32)
         Text(title, style: const TextStyle(color: Colors.black, fontSize: 32, fontFamily: 'Inter', fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
         const SizedBox(height: 12),
         Row(
@@ -241,15 +262,15 @@ class NoteCardContent extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.black54, width: 1.2)),
-              child: Text(subject, style: const TextStyle(color: Colors.black, fontSize: 20, fontFamily: 'Inter', fontWeight: FontWeight.w700)), // 18 -> 20
+              child: Text(subject, style: const TextStyle(color: Colors.black, fontSize: 20, fontFamily: 'Inter', fontWeight: FontWeight.w700)),
             ),
             const SizedBox(width: 12),
-            Text('$author · $date', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 20, fontFamily: 'Inter', fontWeight: FontWeight.w700)), // 18 -> 20
+            Text('$author · $date', style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 20, fontFamily: 'Inter', fontWeight: FontWeight.w700)),
           ],
         ),
         const SizedBox(height: 20),
-        // 💡 본문 미리보기 확대 (22 -> 24)
-        Text(preview.replaceAll(RegExp(r'<[^>]*>'), ''), style: const TextStyle(color: Colors.black, fontSize: 24, fontFamily: 'Inter', fontWeight: FontWeight.w500, height: 1.5), maxLines: 3, overflow: TextOverflow.ellipsis),
+        // preview에는 이미 _stripHtml이 적용되어 들어오므로 그대로 출력
+        Text(preview, style: const TextStyle(color: Colors.black, fontSize: 24, fontFamily: 'Inter', fontWeight: FontWeight.w500, height: 1.5), maxLines: 3, overflow: TextOverflow.ellipsis),
         const SizedBox(height: 55),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -263,9 +284,9 @@ class NoteCardContent extends StatelessWidget {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: isLiked ? Colors.red : Colors.grey, size: 36), // 30 -> 36
+                        Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: isLiked ? Colors.red : Colors.grey, size: 36),
                         const SizedBox(width: 8),
-                        Text(likes.toString(), style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 22, fontFamily: 'Inter', fontWeight: FontWeight.w700)), // 18 -> 22
+                        Text(likes.toString(), style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 22, fontFamily: 'Inter', fontWeight: FontWeight.w700)),
                       ],
                     ),
                   ),
@@ -278,9 +299,9 @@ class NoteCardContent extends StatelessWidget {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        const Icon(Icons.comment_outlined, color: Colors.black54, size: 32), // 25 -> 32
+                        const Icon(Icons.comment_outlined, color: Colors.black54, size: 32),
                         const SizedBox(width: 8),
-                        Text(comments.toString(), style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 22, fontFamily: 'Inter', fontWeight: FontWeight.w700)), // 18 -> 22
+                        Text(comments.toString(), style: const TextStyle(color: Color(0xFFCFCFCF), fontSize: 22, fontFamily: 'Inter', fontWeight: FontWeight.w700)),
                       ],
                     ),
                   ),
@@ -289,7 +310,7 @@ class NoteCardContent extends StatelessWidget {
             ),
             IconButton(
               onPressed: onBookmarkTap,
-              icon: Icon(isBookmarked ? Icons.bookmark : Icons.bookmark_border_outlined, size: 36, color: isBookmarked ? const Color(0xFF10595F) : Colors.black54), // 30 -> 36
+              icon: Icon(isBookmarked ? Icons.bookmark : Icons.bookmark_border_outlined, size: 36, color: isBookmarked ? const Color(0xFF10595F) : Colors.black54),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
             ),
