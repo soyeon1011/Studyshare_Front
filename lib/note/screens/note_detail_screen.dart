@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import '../models/note_model.dart';
-// 💡 댓글 위젯 임포트 (경로 확인 필수)
 import 'package:studyshare/comment/widgets/comment_section.dart';
+import 'note_writing_screen.dart'; // 💡 작성 화면(수정용) 임포트
 
 class NoteDetailScreen extends StatelessWidget {
   final NoteModel note;
@@ -20,6 +20,30 @@ class NoteDetailScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
+
+        // 💡 [핵심] 수정 버튼 추가
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.black),
+            tooltip: '노트 수정',
+            onPressed: () async {
+              // 수정 화면으로 이동 (기존 note 데이터를 넘겨줌)
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NoteWritingScreen(note: note),
+                ),
+              );
+
+              // 수정이 완료되어 돌아왔다면(true), 상세 화면도 닫아서 목록을 갱신하게 함
+              if (result == true) {
+                if (context.mounted) {
+                  Navigator.pop(context); // 목록으로 돌아감 (거기서 새로고침 됨)
+                }
+              }
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -61,13 +85,13 @@ class NoteDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 50),
 
-            // 4. 💡 [추가] 댓글 영역
+            // 4. 댓글 영역
             CommentSection(
               postId: note.id,
-              type: 'note', // 백엔드 API 구분용 (note)
+              type: 'note',
             ),
 
-            const SizedBox(height: 30), // 하단 여백
+            const SizedBox(height: 30),
           ],
         ),
       ),

@@ -19,7 +19,7 @@ final Map<String, int> subjectToId = {
 class NoteService {
 
   static String get _baseUrl {
-    const port = '8081'; // ⚠️ 백엔드 포트 확인 (8081)
+    const port = '8081';
 
     if (kIsWeb) {
       return 'http://localhost:$port/notes';
@@ -209,4 +209,40 @@ class NoteService {
       return [];
     }
   }
+  // 💡 [추가] 노트 수정 API 호출
+  Future<bool> updateNote({
+    required int noteId,
+    required String title,
+    required String bodyHtml,
+    required String selectedSubject,
+    required int userId,
+  }) async {
+    final subjectId = subjectToId[selectedSubject] ?? 1; // 과목명 -> ID 변환
+
+    // 수정할 데이터 패키징
+    final updateData = {
+      'title': title,
+      'noteSubjectId': subjectId,
+      'noteContent': bodyHtml,
+      'noteFileUrl': '', // 파일 URL 처리 (필요시 구현)
+      'userId': userId,
+    };
+
+    try {
+      // PUT 요청 (수정)
+      final response = await http.put(
+        Uri.parse('$_baseUrl/$noteId'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(updateData),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('❌ 노트 수정 오류: $e');
+      return false;
+    }
+  }
+
 }
