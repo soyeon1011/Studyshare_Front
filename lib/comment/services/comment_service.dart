@@ -7,7 +7,6 @@ import '../models/comment_model.dart';
 
 class CommentService {
 
-  // 💡 [수정] 다른 서비스들과 똑같이 8081 포트로 설정
   static String get _baseUrl {
     const port = '8081';
     if (kIsWeb) {
@@ -19,17 +18,26 @@ class CommentService {
   }
 
   // 1. 댓글 작성
-  Future<bool> writeComment({int? noteId, int? communityId, required String content, int userId = 1}) async {
+  Future<bool> writeComment({
+    int? noteId,
+    int? communityId,
+    required String content,
+    int userId = 1,
+    int? parentCommentId, // 💡 [수정] 대댓글용 부모 ID 파라미터 추가
+  }) async {
     final url = Uri.parse(_baseUrl);
 
     final Map<String, dynamic> bodyData = {
       'content': content,
-      'user_id': userId, // (임시)
+      'user_id': userId,
     };
 
     // 노트인지 커뮤니티인지 구분해서 ID 넣기
     if (noteId != null) bodyData['noteId'] = noteId;
     if (communityId != null) bodyData['communityId'] = communityId;
+
+    // 💡 [수정] 대댓글이면 부모 ID 포함
+    if (parentCommentId != null) bodyData['parentCommentId'] = parentCommentId;
 
     try {
       final response = await http.post(
@@ -38,7 +46,7 @@ class CommentService {
         body: jsonEncode(bodyData),
       );
 
-      return response.statusCode == 201;
+      return response.statusCode == 201; // 201 Created
     } catch (e) {
       print('댓글 작성 에러: $e');
       return false;

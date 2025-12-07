@@ -24,6 +24,9 @@ class _CommentSectionState extends State<CommentSection> {
   List<CommentModel> _comments = [];
   bool _isLoading = true;
 
+  // 💡 [추가] 현재 답글을 달고 있는 대상 댓글 ID (없으면 null)
+  int? _replyingToId;
+
   @override
   void initState() {
     super.initState();
@@ -49,11 +52,15 @@ class _CommentSectionState extends State<CommentSection> {
       content: _controller.text,
       noteId: widget.type == 'note' ? widget.postId : null,
       communityId: widget.type == 'community' ? widget.postId : null,
+      parentCommentId: _replyingToId, // 💡 [핵심] 답글이면 부모 ID 전송
     );
 
     if (success) {
       _controller.clear(); // 입력창 비우기
       FocusScope.of(context).unfocus(); // 키보드 내리기
+      setState(() {
+        _replyingToId = null; // 답글 모드 초기화
+      });
       await _loadComments(); // 목록 새로고침
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,6 +71,9 @@ class _CommentSectionState extends State<CommentSection> {
 
   @override
   Widget build(BuildContext context) {
+    // 💡 [로직] 댓글 정렬: 부모 댓글을 먼저 찾고, 그 아래 자식들을 붙임
+    List<CommentModel> rootComments = _comments.where((c) => c.parentCommentId == null).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -86,73 +96,114 @@ class _CommentSectionState extends State<CommentSection> {
                 style: TextStyle(color: Colors.grey)),
           )
         else
-          ListView.separated(
-            shrinkWrap: true, // Column 안에서 리스트 쓸 때 필수
-            physics: const NeverScrollableScrollPhysics(), // 전체 스크롤 사용
-            itemCount: _comments.length,
-            separatorBuilder: (c, i) => const SizedBox(height: 15),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: rootComments.length,
             itemBuilder: (context, index) {
-              final comment = _comments[index];
-              return Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('User ${comment.userId}',
-                            style: const TextStyle(fontWeight: FontWeight.bold)),
-                        Text(comment.createDate.split('T')[0], // 날짜만 표시 (임시)
-                            style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Text(comment.content, style: const TextStyle(fontSize: 15)),
-                  ],
-                ),
+              final root = rootComments[index];
+              // 이 부모 댓글에 달린 대댓글 찾기
+              final replies = _comments.where((c) => c.parentCommentId == root.id).toList();
+
+              return Column(
+                children: [
+                  // 1. 부모 댓글 표시
+                  _buildCommentItem(root, isReply: false),
+
+                  // 2. 자식 댓글들 표시 (Padding으로 들여쓰기)
+                  ...replies.map((reply) => Padding(
+                    padding: const EdgeInsets.only(left: 40.0), // 💡 들여쓰기
+                    child: _buildCommentItem(reply, isReply: true),
+                  )),
+                  const SizedBox(height: 15), // 그룹 간 간격
+                ],
               );
             },
           ),
 
         const SizedBox(height: 20),
 
-        // 3. 댓글 입력창
+        // 💡 [추가] "00님에게 답글 작성 중" 배너
+        if (_replyingToId != null)
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.grey[200],
+            child: Row(
+              children: [
+                const Icon(Icons.subdirectory_arrow_right, size: 16),
+                const SizedBox(width: 8),
+                const Text("답글 작성 중...", style: TextStyle(fontWeight: FontWeight.bold)),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 16),
+                  onPressed: () => setState(() => _replyingToId = null),
+                )
+              ],
+            ),
+          ),
+
+        // 댓글 입력창 (기존 유지)
         Row(
           children: [
             Expanded(
               child: TextField(
                 controller: _controller,
                 decoration: InputDecoration(
-                  hintText: '댓글을 입력하세요...',
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: const BorderSide(color: Colors.grey),
-                  ),
+                  hintText: _replyingToId != null ? '답글을 입력하세요...' : '댓글을 입력하세요...',
+                  filled: true, fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(25)),
                 ),
               ),
             ),
             const SizedBox(width: 10),
             ElevatedButton(
               onPressed: _submitComment,
-              style: ElevatedButton.styleFrom(
-                shape: const CircleBorder(),
-                padding: const EdgeInsets.all(15),
-                backgroundColor: const Color(0xFFF4A908), // 커뮤니티 색상 (노트면 바꿀 수 있음)
-              ),
+              style: ElevatedButton.styleFrom(shape: const CircleBorder(), padding: const EdgeInsets.all(15), backgroundColor: const Color(0xFFF4A908)),
               child: const Icon(Icons.send, color: Colors.white),
             ),
           ],
         ),
-        const SizedBox(height: 30), // 하단 여백
+        const SizedBox(height: 30),
       ],
+    );
+  }
+
+  // 💡 댓글 아이템 위젯 (재사용)
+  Widget _buildCommentItem(CommentModel comment, {required bool isReply}) {
+    return Container(
+      width: double.infinity, // 꽉 차게
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: isReply ? Colors.grey[50] : Colors.grey[100], // 대댓글은 배경색 살짝 다르게
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('User ${comment.userId}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(comment.createDate.split('T')[0], style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(comment.content, style: const TextStyle(fontSize: 15)),
+          const SizedBox(height: 8),
+
+          // 💡 [핵심] 답글 달기 버튼 (대댓글에는 답글 버튼 안 보이게 함 - 1depth 제한)
+          if (!isReply)
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _replyingToId = comment.id; // 답글 대상 설정
+                });
+              },
+              child: const Text("답글 달기", style: TextStyle(color: Colors.blueGrey, fontSize: 12, fontWeight: FontWeight.bold)),
+            ),
+        ],
+      ),
     );
   }
 }
